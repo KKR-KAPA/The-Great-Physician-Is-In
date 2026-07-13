@@ -54,7 +54,10 @@ async function getProgram() {
   const rows = await fetchCSV(SHEETS.program)
   if (rows.length < 2) return { days: [], slots: [] }
   const days = rows[0].slice(1).filter(Boolean)
-  const slots = rows.slice(1).filter(r => r[0]).map(r => ({ time: r[0].trim(), schedule: r.slice(1) }))
+  const slots = rows.slice(1).filter(r => r[0]).map(r => {
+    const parts = r[0].split('\n')
+    return { role: parts[0].trim(), time: parts[1] ? parts[1].trim() : '', schedule: r.slice(1) }
+  })
   return { days, slots }
 }
 
@@ -126,6 +129,23 @@ async function setupWhatsApp() {
   } catch (e) {}
 }
 
+// ===== SPEAKER MODAL =====
+let speakerInfo = null
+
+function openSpeakerModal() {
+  if (!speakerInfo) return
+  openModal('Latar Belakang Pengkhotbah', `
+    <div style="text-align:center;margin-bottom:20px">
+      <img src="PrKim.jpeg" alt="Pr. Taehyung Kim" style="width:100px;height:100px;border-radius:50%;object-fit:cover;border:3px solid var(--gold)" onerror="this.style.display='none'">
+      <h3 style="margin-top:12px;font-size:17px;font-weight:700;color:var(--navy)">${speakerInfo.name}</h3>
+      <p style="color:var(--gold);font-size:13px;font-weight:600">Pengkhotbah Utama</p>
+    </div>
+    <div style="font-size:14px;color:var(--gray);line-height:1.8">
+      ${speakerInfo.bio || 'Maklumat latar belakang akan dikemaskini.'}
+    </div>
+  `)
+}
+
 // ===== HOME PAGE =====
 async function loadEventInfo() {
   const container = document.getElementById('eventInfoContainer')
@@ -134,6 +154,11 @@ async function loadEventInfo() {
   try {
     const info = await getEventInfo()
     container.innerHTML = ''
+
+    speakerInfo = {
+      name: info['Main Speaker'] || 'Pr. Taehyung Kim',
+      bio: info['Speaker Bio'] || 'Maklumat latar belakang akan dikemaskini.',
+    }
 
     // Banner
     if (info['Banner Image']) {
@@ -156,29 +181,32 @@ async function loadEventInfo() {
     let venueLink = ''
     if (info['Venue Google Map']) {
       venueLink = `<a href="${info['Venue Google Map']}" target="_blank" class="info-link">
-        <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg> Buka di Google Maps
+        <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg> Buka Peta
       </a>`
     }
     infoCard.innerHTML = `
-      <h2>Maklumat Program</h2>
+      <h2 style="font-size:20px;margin-bottom:20px">📋 Maklumat Program</h2>
       <div class="info-grid">
-        <div class="info-item"><span class="info-label">Tarikh</span><span class="info-value">${info['Date Start'] || '?'} - ${info['Date End'] || '?'}</span></div>
+        <div class="info-item"><span class="info-label">Tarikh</span><span class="info-value">${info['Date Start'] || '?'} – ${info['Date End'] || '?'}</span></div>
         <div class="info-item"><span class="info-label">Tempat</span><span class="info-value">${info['Venue'] || '-'}</span></div>
         ${venueLink}
       </div>`
     container.appendChild(infoCard)
 
-    // Speaker
+    // Speaker card - clickable
     const spk = document.createElement('div')
-    spk.className = 'card'
+    spk.className = 'card card-clickable'
+    spk.style.cursor = 'pointer'
+    spk.onclick = openSpeakerModal
     spk.innerHTML = `
-      <h2>Pengkhotbah</h2>
+      <h2 style="font-size:20px;margin-bottom:20px">🎤 Pengkhotbah</h2>
       <div class="speaker-card">
         <img src="PrKim.jpeg" alt="Speaker" class="speaker-img" onerror="this.src='data:image/svg+xml,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'64\\' height=\\'64\\'><rect fill=\\'%23c8a24e\\' width=\\'64\\' height=\\'64\\' rx=\\'32\\'/><text x=\\'32\\' y=\\'38\\' text-anchor=\\'middle\\' fill=\\'white\\' font-size=\\'12\\' font-family=\\'sans-serif\\'>Pr</text></svg>'">
-        <div class="speaker-info">
+        <div class="speaker-info" style="flex:1">
           <div class="speaker-name">${info['Main Speaker'] || '-'}</div>
           <div class="speaker-role">Pengkhotbah Utama</div>
         </div>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
       </div>`
     container.appendChild(spk)
 
@@ -186,7 +214,7 @@ async function loadEventInfo() {
     if (info['Livestream']) {
       const ls = document.createElement('div')
       ls.className = 'card'
-      ls.innerHTML = `<h2>Siaran Langsung</h2><a href="${info['Livestream']}" target="_blank" class="livestream-link">
+      ls.innerHTML = `<h2 style="font-size:20px;margin-bottom:20px">📺 Siaran Langsung</h2><a href="${info['Livestream']}" target="_blank" class="livestream-link">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
         Tonton Sekarang
       </a>`
@@ -216,7 +244,7 @@ async function renderStats() {
     }
 
     const existingDaily = document.getElementById('dailyBreakdown')
-    if (existingDaily) existingDaily.innerHTML = dailyHTML
+    if (existingDaily) existingDaily.innerHTML = dailyHTML || '<div class="daily-list" style="text-align:center;color:var(--gray);font-size:13px;padding:12px 0">Belum ada data kehadiran.</div>'
   } catch (e) {}
 }
 
@@ -249,7 +277,8 @@ async function loadProgram() {
         if (!person) return
         html += `<div class="program-slot">
           <div class="slot-left">
-            <div class="slot-role">${slot.time}</div>
+            <div class="slot-role">${slot.role}</div>
+            ${slot.time ? `<div class="slot-time">(${slot.time})</div>` : ''}
           </div>
           <div class="slot-person">${person}</div>
         </div>`
@@ -374,8 +403,8 @@ function initAttendancePage() {
         await fetch(APPS_SCRIPT_URL, {
           method: 'POST',
           mode: 'no-cors',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: new URLSearchParams({ name, phone }),
+          headers: { 'Content-Type': 'text/plain' },
+          body: JSON.stringify({ name, phone }),
         })
       } catch (e) {}
     }
