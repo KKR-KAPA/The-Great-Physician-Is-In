@@ -114,7 +114,6 @@ function closeModal() {
 // ===== WHATSAPP FLOAT =====
 async function setupWhatsApp() {
   const btn = document.getElementById('whatsappBtn')
-  const waNumber = document.getElementById('waNumber')
   if (!btn) return
   try {
     const info = await getEventInfo()
@@ -122,156 +121,142 @@ async function setupWhatsApp() {
     const raw = info['Whatsapp Number'] || ''
     const phone = raw.replace(/[^0-9]/g, '')
     if (phone) {
-      waNumber.textContent = raw
       btn.href = `https://wa.me/${phone}?text=Hai%20${encodeURIComponent(contact)}%2C%20saya%20ada%20soalan%20berkaitan%20KKR.`
     }
-  } catch (e) { console.error('WA setup error', e) }
+  } catch (e) {}
 }
 
-// ===== EVENT INFO LOADER (for home page) =====
+// ===== HOME PAGE =====
 async function loadEventInfo() {
   const container = document.getElementById('eventInfoContainer')
   if (!container) return
-  container.innerHTML = '<div class="loading-screen" style="min-height:auto;padding:40px"><div class="spinner"></div></div>'
+  container.innerHTML = '<div class="loading-wrap"><div class="spinner"></div></div>'
   try {
     const info = await getEventInfo()
     container.innerHTML = ''
 
     // Banner
     if (info['Banner Image']) {
-      const banner = document.createElement('div')
-      banner.className = 'card'
-      banner.style.padding = '0'
-      banner.style.overflow = 'hidden'
-      banner.innerHTML = `<img src="${info['Banner Image']}" alt="Banner" style="width:100%;height:200px;object-fit:cover" onerror="this.style.display='none'">`
-      container.appendChild(banner)
+      const div = document.createElement('div')
+      div.className = 'banner-wrap'
+      div.innerHTML = `<img src="${info['Banner Image']}" alt="Banner" onerror="this.style.display='none'">`
+      container.appendChild(div)
     }
 
-    // Attendance count
-    const countCard = document.createElement('div')
-    countCard.id = 'countCard'
-    container.appendChild(countCard)
-    renderAttendanceCount()
+    // Stats bar
+    const statsDiv = document.createElement('div')
+    statsDiv.id = 'statsBar'
+    statsDiv.className = 'stats-bar'
+    container.appendChild(statsDiv)
+    renderStats()
 
-    // Event info card
+    // Info card
     const infoCard = document.createElement('div')
     infoCard.className = 'card'
+    let venueLink = ''
+    if (info['Venue Google Map']) {
+      venueLink = `<a href="${info['Venue Google Map']}" target="_blank" class="info-link">
+        <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg> Buka di Google Maps
+      </a>`
+    }
     infoCard.innerHTML = `
       <h2>Maklumat Program</h2>
-      <div class="info-row"><span class="info-label">Tarikh</span><span class="info-value">${info['Date Start'] || '?'} - ${info['Date End'] || '?'}</span></div>
-      <div class="info-row"><span class="info-label">Tempat</span><span class="info-value">${info['Venue'] || '-'}</span></div>
-      ${info['Venue Google Map'] ? `<a href="${info['Venue Google Map']}" target="_blank" class="link-gold link-map mt-2"><svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg> Buka di Google Maps</a>` : ''}
-    `
+      <div class="info-grid">
+        <div class="info-item"><span class="info-label">Tarikh</span><span class="info-value">${info['Date Start'] || '?'} - ${info['Date End'] || '?'}</span></div>
+        <div class="info-item"><span class="info-label">Tempat</span><span class="info-value">${info['Venue'] || '-'}</span></div>
+        ${venueLink}
+      </div>`
     container.appendChild(infoCard)
 
-    // Speaker card
-    const spkCard = document.createElement('div')
-    spkCard.className = 'card'
-    spkCard.innerHTML = `
+    // Speaker
+    const spk = document.createElement('div')
+    spk.className = 'card'
+    spk.innerHTML = `
       <h2>Pengkhotbah</h2>
-      <div class="speaker">
-        <img src="PrKim.jpeg" alt="Speaker" class="speaker-img" onerror="this.src='data:image/svg+xml,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'72\\' height=\\'72\\'><rect fill=\\'%23c8a24e\\' width=\\'72\\' height=\\'72\\' rx=\\'36\\'/><text x=\\'36\\' y=\\'42\\' text-anchor=\\'middle\\' fill=\\'white\\' font-size=\\'13\\' font-family=\\'sans-serif\\'>Pr</text></svg>'">
-        <div><div class="speaker-name">${info['Main Speaker'] || '-'}</div><div class="speaker-role">Pengkhotbah Utama</div></div>
+      <div class="speaker-card">
+        <img src="PrKim.jpeg" alt="Speaker" class="speaker-img" onerror="this.src='data:image/svg+xml,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'64\\' height=\\'64\\'><rect fill=\\'%23c8a24e\\' width=\\'64\\' height=\\'64\\' rx=\\'32\\'/><text x=\\'32\\' y=\\'38\\' text-anchor=\\'middle\\' fill=\\'white\\' font-size=\\'12\\' font-family=\\'sans-serif\\'>Pr</text></svg>'">
+        <div class="speaker-info">
+          <div class="speaker-name">${info['Main Speaker'] || '-'}</div>
+          <div class="speaker-role">Pengkhotbah Utama</div>
+        </div>
       </div>`
-    container.appendChild(spkCard)
+    container.appendChild(spk)
 
     // Livestream
     if (info['Livestream']) {
       const ls = document.createElement('div')
       ls.className = 'card'
-      ls.innerHTML = `<h2>Siaran Langsung</h2><a href="${info['Livestream']}" target="_blank" class="btn btn-navy" style="display:inline-block;padding:10px 24px;font-size:13px">Tonton Sekarang</a>`
+      ls.innerHTML = `<h2>Siaran Langsung</h2><a href="${info['Livestream']}" target="_blank" class="livestream-link">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        Tonton Sekarang
+      </a>`
       container.appendChild(ls)
     }
-
-    // Contact card
-    const ctc = document.createElement('div')
-    ctc.className = 'card'
-    ctc.innerHTML = `
-      <h2>Hubungi</h2>
-      <p style="font-size:13px;color:var(--gray)">${info['Contact'] || '-'}</p>
-      ${info['Whatsapp Number'] ? `<a href="https://wa.me/${info['Whatsapp Number'].replace(/[^0-9]/g, '')}" target="_blank" class="link-gold" style="margin-top:6px;display:inline-block;font-size:13px">WhatsApp: ${info['Whatsapp Number']}</a>` : ''}
-    `
-    container.appendChild(ctc)
   } catch (e) {
     container.innerHTML = '<div class="card"><p style="color:#ef4444;font-size:13px">Gagal memuat maklumat. Sila muat semula halaman.</p></div>'
   }
 }
 
-async function renderAttendanceCount() {
-  const card = document.getElementById('countCard')
-  if (!card) return
+async function renderStats() {
+  const bar = document.getElementById('statsBar')
+  if (!bar) return
   try {
     const stats = await getAttendanceStats()
     const dates = Object.entries(stats.daily).sort((a, b) => new Date(a[0]) - new Date(b[0]))
-    card.className = 'card'
-    card.innerHTML = `
-      <h2>Kehadiran</h2>
-      <div class="count-grid">
-        <div class="count-box navy-box"><div class="count-number">${stats.today}</div><div class="count-label">Hari Ini</div></div>
-        <div class="count-box gold-box"><div class="count-number">${stats.total}</div><div class="count-label">Jumlah</div></div>
-      </div>
-      ${dates.map(([d, c]) => `<div class="count-daily-item"><span>${d}</span><span style="font-weight:600">${c} orang</span></div>`).join('')}
+    bar.innerHTML = `
+      <div class="stat-card"><div class="stat-number">${stats.today}</div><div class="stat-label">Hari Ini</div></div>
+      <div class="stat-card"><div class="stat-number gold">${stats.total}</div><div class="stat-label">Jumlah</div></div>
     `
-  } catch (e) {
-    card.className = 'card'
-    card.innerHTML = '<p style="font-size:13px;color:var(--gray)">Kehadiran: Gagal memuat.</p>'
-  }
-}
 
-// ===== ATTENDANCE =====
-async function submitAttendance(name, phone) {
-  const today = getTodayMsia()
-
-  try {
-    const rows = await fetchCSV(SHEETS.attendance)
-    const isDuplicate = rows.slice(1).some(r => {
-      const rowDate = r[1] || ''
-      const rowPhone = (r[3] || '').trim()
-      return rowDate === today && rowPhone === phone.trim()
-    })
-
-    if (isDuplicate) {
-      return { status: 'duplicate', message: 'Anda sudah check in hari ini' }
+    let dailyHTML = ''
+    if (dates.length) {
+      dailyHTML = '<div class="daily-list">' + dates.map(([d, c]) =>
+        `<div class="daily-item"><span class="daily-date">${d}</span><span class="daily-num">${c} orang</span></div>`
+      ).join('') + '</div>'
     }
 
-    await fetch(APPS_SCRIPT_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({ name, phone }),
-    })
-
-    return { status: 'success', message: 'Check in berjaya! Selamat datang ke KKR.' }
-  } catch (e) {
-    return { status: 'error', message: 'Ralat rangkaian. Sila cuba lagi.' }
-  }
+    const existingDaily = document.getElementById('dailyBreakdown')
+    if (existingDaily) existingDaily.innerHTML = dailyHTML
+  } catch (e) {}
 }
 
-// ===== LOAD PROGRAM =====
+// ===== PROGRAM PAGE =====
 async function loadProgram() {
   const container = document.getElementById('programContainer')
   if (!container) return
-  container.innerHTML = '<div class="loading-screen" style="min-height:auto;padding:40px"><div class="spinner"></div></div>'
+  container.innerHTML = '<div class="loading-wrap"><div class="spinner"></div></div>'
   try {
     const data = await getProgram()
     if (!data.days.length) { container.innerHTML = '<div class="card"><p style="font-size:13px;color:var(--gray)">Tiada data program.</p></div>'; return }
 
     const dayLabels = ['Isnin', 'Selasa', 'Rabu', 'Khamis', 'Jumaat']
-    let html = '<div class="table-wrap card" style="padding:0;overflow:hidden"><table class="program-table"><thead><tr><th style="text-align:left;padding-left:12px">Masa</th>'
-    data.days.forEach((d, i) => {
-      html += `<th><span class="day-label">${dayLabels[i] || ''}</span><span class="day-date">${d}</span></th>`
-    })
-    html += '</tr></thead><tbody>'
-    data.slots.forEach(s => {
-      html += `<tr><td class="time-col" style="padding-left:12px">${s.time}</td>`
-      data.days.forEach((_, j) => {
-        html += `<td>${s.schedule[j] || '-'}</td>`
-      })
-      html += '</tr>'
-    })
-    html += '</tbody></table></div>'
+    const monthMap = { Jul: 'Julai' }
+    let html = ''
 
-    html += '<div class="note-card">* Program pada 25 Julai 2026 akan diadakan di <strong>SASS Multipurpose Hall</strong> yang dikendalikan oleh pihak lain. Sila rujuk pengumuman untuk maklumat lanjut.</div>'
+    data.days.forEach((day, i) => {
+      const dateParts = day.split(' ')
+      const month = monthMap[dateParts[1]] || dateParts[1] || ''
+      const displayDate = dateParts[0] ? `${dateParts[0]} ${month} ${dateParts[2] || ''}` : day
+
+      html += `<div class="program-day-card">
+        <div class="program-day-header">
+          <div class="day-name">${dayLabels[i] || ''}</div>
+          <div class="day-date">${displayDate}</div>
+        </div>`
+
+      data.slots.forEach(slot => {
+        const person = slot.schedule[i] || ''
+        if (!person) return
+        html += `<div class="program-slot">
+          <div class="slot-left">
+            <div class="slot-role">${slot.time}</div>
+          </div>
+          <div class="slot-person">${person}</div>
+        </div>`
+      })
+
+      html += '</div>'
+    })
 
     container.innerHTML = html
   } catch (e) {
@@ -279,11 +264,11 @@ async function loadProgram() {
   }
 }
 
-// ===== LOAD PETUGAS =====
+// ===== PETUGAS PAGE =====
 async function loadPetugas() {
   const container = document.getElementById('petugasContainer')
   if (!container) return
-  container.innerHTML = '<div class="loading-screen" style="min-height:auto;padding:40px"><div class="spinner"></div></div>'
+  container.innerHTML = '<div class="loading-wrap"><div class="spinner"></div></div>'
   try {
     const data = await getPetugas()
     if (!data.days.length) { container.innerHTML = '<div class="card"><p style="font-size:13px;color:var(--gray)">Tiada data petugas.</p></div>'; return }
@@ -302,7 +287,6 @@ async function loadPetugas() {
     })
     html += '</div>'
 
-    // Store data for modal
     window.__petugasData = data
     container.innerHTML = html
   } catch (e) {
@@ -322,11 +306,11 @@ function openPetugasModal(dayIndex) {
   openModal(title, body)
 }
 
-// ===== LOAD ANNOUNCEMENTS =====
+// ===== ANNOUNCEMENTS PAGE =====
 async function loadAnnouncements() {
   const container = document.getElementById('announceContainer')
   if (!container) return
-  container.innerHTML = '<div class="loading-screen" style="min-height:auto;padding:40px"><div class="spinner"></div></div>'
+  container.innerHTML = '<div class="loading-wrap"><div class="spinner"></div></div>'
   try {
     const list = await getAnnouncements()
     if (!list.length) { container.innerHTML = '<div class="card"><p style="font-size:13px;color:var(--gray)">Tiada pengumuman.</p></div>'; return }
@@ -362,7 +346,6 @@ function initAttendancePage() {
   const submitBtn = document.getElementById('submitBtn')
   const formSection = document.getElementById('formSection')
   const statusSection = document.getElementById('statusSection')
-
   if (!form) return
 
   form.addEventListener('submit', async (e) => {
@@ -372,35 +355,52 @@ function initAttendancePage() {
     if (!name || !phone) return
 
     submitBtn.disabled = true
-    submitBtn.innerHTML = '<div class="spinner" style="width:20px;height:20px;border-width:2px;margin:0 auto"></div>'
+    submitBtn.innerHTML = '<div style="width:20px;height:20px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto"></div>'
 
-    const result = await submitAttendance(name, phone)
+    const today = getTodayMsia()
+    let isDuplicate = false
+
+    try {
+      const rows = await fetchCSV(SHEETS.attendance)
+      isDuplicate = rows.slice(1).some(r => {
+        const rowDate = r[1] || ''
+        const rowPhone = (r[3] || '').trim()
+        return rowDate === today && rowPhone === phone.trim()
+      })
+    } catch (e) {}
+
+    if (!isDuplicate) {
+      try {
+        await fetch(APPS_SCRIPT_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams({ name, phone }),
+        })
+      } catch (e) {}
+    }
 
     formSection.style.display = 'none'
     statusSection.style.display = 'block'
 
-    if (result.status === 'success') {
+    if (isDuplicate) {
       statusSection.innerHTML = `
         <div class="status-box">
-          <div class="status-icon success"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></div>
-          <h2 style="color:white">Check In Berjaya!</h2>
-          <p class="status-msg">${result.message}</p>
-          <p class="status-sub">Mengalihkan ke Laman Utama...</p>
-        </div>`
-    } else if (result.status === 'duplicate') {
-      statusSection.innerHTML = `
-        <div class="status-box">
-          <div class="status-icon duplicate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 9v2m0 4h.01"/></svg></div>
-          <h2 style="color:white">Anda Sudah Check In</h2>
-          <p class="status-msg" style="color:#fcd34d">${result.message}</p>
+          <div class="status-icon duplicate">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 9v2m0 4h.01"/></svg>
+          </div>
+          <h2>Anda Sudah Check In</h2>
+          <p class="status-msg" style="color:#fcd34d">Anda sudah check in hari ini</p>
           <p class="status-sub">Mengalihkan ke Laman Utama...</p>
         </div>`
     } else {
       statusSection.innerHTML = `
         <div class="status-box">
-          <div class="status-icon error"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 18L18 6M6 6l12 12"/></svg></div>
-          <h2 style="color:white">Ralat</h2>
-          <p class="status-msg" style="color:#fca5a5">${result.message}</p>
+          <div class="status-icon success">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>
+          </div>
+          <h2>Check In Berjaya!</h2>
+          <p class="status-msg">Selamat datang ke KKR</p>
           <p class="status-sub">Mengalihkan ke Laman Utama...</p>
         </div>`
     }
@@ -413,14 +413,12 @@ function initAttendancePage() {
 function initSplash() {
   const eventEl = document.getElementById('splashEventName')
   const themeEl = document.getElementById('splashTheme')
-  const logo = document.getElementById('splashLogo')
 
   getEventInfo().then(info => {
     if (eventEl) eventEl.textContent = info['Event Name'] || 'KKR (Kebaktian Kebangunan Rohani)'
-    if (themeEl) themeEl.textContent = info['Theme'] || 'The Great Physician Is In'
+    if (themeEl) themeEl.textContent = `"${info['Theme'] || 'The Great Physician Is In'}"`
   }).catch(() => {})
 
-  // Redirect after 3.5s
   setTimeout(() => {
     document.querySelector('.splash').style.transition = 'opacity 0.5s'
     document.querySelector('.splash').style.opacity = '0'
@@ -430,18 +428,15 @@ function initSplash() {
 
 // ===== INIT =====
 document.addEventListener('DOMContentLoaded', () => {
-  // Close modal on overlay click
   const overlay = document.getElementById('modalOverlay')
   if (overlay) overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal() })
 
-  // Page-specific init
   if (document.getElementById('splashPage')) initSplash()
   if (document.getElementById('attendancePage')) initAttendancePage()
-  if (document.getElementById('homePage')) { loadEventInfo(); setInterval(renderAttendanceCount, 30000) }
+  if (document.getElementById('homePage')) { loadEventInfo(); setInterval(renderStats, 30000) }
   if (document.getElementById('programPage')) loadProgram()
   if (document.getElementById('petugasPage')) loadPetugas()
   if (document.getElementById('announcePage')) loadAnnouncements()
 
-  // WhatsApp setup
   setupWhatsApp()
 })
