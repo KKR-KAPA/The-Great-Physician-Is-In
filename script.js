@@ -134,11 +134,11 @@ let speakerInfo = null
 
 function openSpeakerModal() {
   if (!speakerInfo) return
-  openModal('Latar Belakang Pengkhotbah', `
+  openModal('Latar Belakang Pembicara', `
     <div style="text-align:center;margin-bottom:20px">
       <img src="PrKim.jpeg" alt="Pr. Taehyung Kim" style="width:100px;height:100px;border-radius:50%;object-fit:cover;border:3px solid var(--gold)" onerror="this.style.display='none'">
       <h3 style="margin-top:12px;font-size:17px;font-weight:700;color:var(--navy)">${speakerInfo.name}</h3>
-      <p style="color:var(--gold);font-size:13px;font-weight:600">Pengkhotbah Utama</p>
+      <p style="color:var(--gold);font-size:13px;font-weight:600">Pembicara</p>
     </div>
     <div style="font-size:14px;color:var(--gray);line-height:1.8">
       ${speakerInfo.bio || 'Maklumat latar belakang akan dikemaskini.'}
@@ -168,6 +168,12 @@ async function loadEventInfo() {
       container.appendChild(div)
     }
 
+    // Update hero with event info
+    const heroDates = document.getElementById('heroDates')
+    const heroVenue = document.getElementById('heroVenue')
+    if (heroDates) heroDates.textContent = `${info['Date Start'] || '?'} – ${info['Date End'] || '?'}`
+    if (heroVenue) heroVenue.textContent = info['Venue'] || '-'
+
     // Stats bar
     const statsDiv = document.createElement('div')
     statsDiv.id = 'statsBar'
@@ -175,40 +181,34 @@ async function loadEventInfo() {
     container.appendChild(statsDiv)
     renderStats()
 
-    // Info card
-    const infoCard = document.createElement('div')
-    infoCard.className = 'card'
-    let venueLink = ''
-    if (info['Venue Google Map']) {
-      venueLink = `<a href="${info['Venue Google Map']}" target="_blank" class="info-link">
-        <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg> Buka Peta
-      </a>`
-    }
-    infoCard.innerHTML = `
-      <h2 style="font-size:20px;margin-bottom:20px">📋 Maklumat Program</h2>
-      <div class="info-grid">
-        <div class="info-item"><span class="info-label">Tarikh</span><span class="info-value">${info['Date Start'] || '?'} – ${info['Date End'] || '?'}</span></div>
-        <div class="info-item"><span class="info-label">Tempat</span><span class="info-value">${info['Venue'] || '-'}</span></div>
-        ${venueLink}
-      </div>`
-    container.appendChild(infoCard)
-
     // Speaker card - clickable
     const spk = document.createElement('div')
     spk.className = 'card card-clickable'
     spk.style.cursor = 'pointer'
     spk.onclick = openSpeakerModal
     spk.innerHTML = `
-      <h2 style="font-size:20px;margin-bottom:20px">🎤 Pengkhotbah</h2>
+      <h2 style="font-size:20px;margin-bottom:20px">🎤 Pembicara</h2>
       <div class="speaker-card">
         <img src="PrKim.jpeg" alt="Speaker" class="speaker-img" onerror="this.src='data:image/svg+xml,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'64\\' height=\\'64\\'><rect fill=\\'%23c8a24e\\' width=\\'64\\' height=\\'64\\' rx=\\'32\\'/><text x=\\'32\\' y=\\'38\\' text-anchor=\\'middle\\' fill=\\'white\\' font-size=\\'12\\' font-family=\\'sans-serif\\'>Pr</text></svg>'">
         <div class="speaker-info" style="flex:1">
           <div class="speaker-name">${info['Main Speaker'] || '-'}</div>
-          <div class="speaker-role">Pengkhotbah Utama</div>
+          <div class="speaker-role">Pembicara</div>
         </div>
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
       </div>`
     container.appendChild(spk)
+
+    // Venue Map card (bottom)
+    const mapCard = document.createElement('div')
+    mapCard.className = 'card'
+    mapCard.innerHTML = `
+      <h2 style="font-size:20px;margin-bottom:16px">📍 Lokasi</h2>
+      <div class="info-item" style="margin-bottom:12px"><span class="info-label">Tempat</span><span class="info-value">${info['Venue'] || '-'}</span></div>
+      ${info['Venue Google Map'] ? `<a href="${info['Venue Google Map']}" target="_blank" class="info-link" style="margin-top:4px">
+        <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg> Buka di Google Maps
+      </a>` : ''}
+    `
+    container.appendChild(mapCard)
 
     // Livestream
     if (info['Livestream']) {
