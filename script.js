@@ -8,6 +8,9 @@ const SHEETS = {
 }
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzIqTb_aMQWQtH-_uzttgc_DZg5shogZ6A6sVf5mrutiZ8P5hBkOql8uzhZftQpgloU/exec'
 
+const DAY_LABELS = ['Isnin', 'Selasa', 'Rabu', 'Khamis', 'Jumaat']
+const MONTH_MAP = { Jan: 'Januari', Feb: 'Februari', Mar: 'Mac', Apr: 'April', May: 'Mei', Jun: 'Jun', Jul: 'Julai', Aug: 'Ogos', Sep: 'September', Oct: 'Oktober', Nov: 'November', Dec: 'Disember' }
+
 // ===== CSV PARSER =====
 function parseCSV(text) {
   const items = []
@@ -114,7 +117,7 @@ function closeModal() {
   document.body.style.overflow = ''
 }
 
-// ===== WHATSAPP FLOAT =====
+// ===== WHATSAPP =====
 async function setupWhatsApp() {
   const btn = document.getElementById('whatsappBtn')
   if (!btn) return
@@ -136,8 +139,8 @@ function openSpeakerModal() {
   if (!speakerInfo) return
   openModal('Latar Belakang Pembicara', `
     <div style="text-align:center;margin-bottom:20px">
-      <img src="PrKim.jpeg" alt="Pr. Taehyung Kim" style="width:100px;height:100px;border-radius:50%;object-fit:cover;border:3px solid var(--gold)" onerror="this.style.display='none'">
-      <h3 style="margin-top:12px;font-size:17px;font-weight:700;color:var(--navy)">${speakerInfo.name}</h3>
+      <img src="PrKim.jpeg" alt="${speakerInfo.name}" style="width:100px;height:100px;border-radius:50%;object-fit:cover;border:3px solid var(--gold)" onerror="this.style.display='none'">
+      <h3 style="margin-top:12px;font-size:17px;font-weight:700;color:var(--primary)">${speakerInfo.name}</h3>
       <p style="color:var(--gold);font-size:13px;font-weight:600">Pembicara</p>
     </div>
     <div style="font-size:14px;color:var(--gray);line-height:1.8">
@@ -160,7 +163,11 @@ async function loadEventInfo() {
       bio: info['Speaker Bio'] || 'Maklumat latar belakang akan dikemaskini.',
     }
 
-    // Banner
+    const heroDates = document.getElementById('heroDates')
+    const heroVenue = document.getElementById('heroVenue')
+    if (heroDates) heroDates.textContent = `${info['Date Start'] || '?'} – ${info['Date End'] || '?'}`
+    if (heroVenue) heroVenue.textContent = info['Venue'] || '-'
+
     if (info['Banner Image']) {
       const div = document.createElement('div')
       div.className = 'banner-wrap'
@@ -168,20 +175,12 @@ async function loadEventInfo() {
       container.appendChild(div)
     }
 
-    // Update hero with event info
-    const heroDates = document.getElementById('heroDates')
-    const heroVenue = document.getElementById('heroVenue')
-    if (heroDates) heroDates.textContent = `${info['Date Start'] || '?'} – ${info['Date End'] || '?'}`
-    if (heroVenue) heroVenue.textContent = info['Venue'] || '-'
-
-    // Stats bar
     const statsDiv = document.createElement('div')
     statsDiv.id = 'statsBar'
     statsDiv.className = 'stats-bar'
     container.appendChild(statsDiv)
     renderStats()
 
-    // Speaker card - clickable
     const spk = document.createElement('div')
     spk.className = 'card card-clickable'
     spk.style.cursor = 'pointer'
@@ -198,7 +197,6 @@ async function loadEventInfo() {
       </div>`
     container.appendChild(spk)
 
-    // Venue Map card (bottom)
     const mapCard = document.createElement('div')
     mapCard.className = 'card'
     mapCard.innerHTML = `
@@ -210,7 +208,6 @@ async function loadEventInfo() {
     `
     container.appendChild(mapCard)
 
-    // Livestream
     if (info['Livestream']) {
       const ls = document.createElement('div')
       ls.className = 'card'
@@ -221,7 +218,7 @@ async function loadEventInfo() {
       container.appendChild(ls)
     }
   } catch (e) {
-    container.innerHTML = '<div class="card"><p style="color:#ef4444;font-size:13px">Gagal memuat maklumat. Sila muat semula halaman.</p></div>'
+    container.innerHTML = '<div class="card"><p style="color:#ef4444;font-size:13px">Gagal memuat maklumat.</p></div>'
   }
 }
 
@@ -244,70 +241,113 @@ async function renderStats() {
     }
 
     const existingDaily = document.getElementById('dailyBreakdown')
-    if (existingDaily) existingDaily.innerHTML = dailyHTML || '<div class="daily-list" style="text-align:center;color:var(--gray);font-size:13px;padding:12px 0">Belum ada data kehadiran.</div>'
+    if (existingDaily) existingDaily.innerHTML = dailyHTML || '<div class="empty-state">Belum ada data kehadiran.</div>'
   } catch (e) {}
 }
 
-// ===== PROGRAM PAGE =====
+// ===== PROGRAM PAGE (Tabbed) =====
+let programData = null
+
 async function loadProgram() {
   const container = document.getElementById('programContainer')
   if (!container) return
   container.innerHTML = '<div class="loading-wrap"><div class="spinner"></div></div>'
   try {
-    const data = await getProgram()
-    if (!data.days.length) { container.innerHTML = '<div class="card"><p style="font-size:13px;color:var(--gray)">Tiada data program.</p></div>'; return }
+    programData = await getProgram()
+    if (!programData.days.length) { container.innerHTML = '<div class="empty-state">Tiada data program.</div>'; return }
 
-    const dayLabels = ['Isnin', 'Selasa', 'Rabu', 'Khamis', 'Jumaat']
-    const monthMap = { Jul: 'Julai' }
-    let html = ''
+    // Build tabs
+    let tabsHTML = '<div class="program-dates" id="programTabs">'
+    const rawDates = programData.days
 
-    data.days.forEach((day, i) => {
-      const dateParts = day.split(' ')
-      const month = monthMap[dateParts[1]] || dateParts[1] || ''
-      const displayDate = dateParts[0] ? `${dateParts[0]} ${month} ${dateParts[2] || ''}` : day
+    rawDates.forEach((d, i) => {
+      const parts = d.split(' ')
+      const month = MONTH_MAP[parts[1]] || parts[1] || ''
+      const shortMonth = parts[1] ? parts[1].substring(0, 3) : ''
+      const displayShort = parts[0] ? `${parts[0]} ${shortMonth}` : d
 
-      html += `<div class="program-day-card">
-        <div class="program-day-header">
-          <div class="day-name">${dayLabels[i] || ''}</div>
-          <div class="day-date">${displayDate}</div>
-        </div>`
-
-      data.slots.forEach(slot => {
-        const person = slot.schedule[i] || ''
-        if (!person) return
-        html += `<div class="program-slot">
-          <div class="slot-left">
-            <div class="slot-role">${slot.role}</div>
-            ${slot.time ? `<div class="slot-time">(${slot.time})</div>` : ''}
-          </div>
-          <div class="slot-person">${person}</div>
-        </div>`
-      })
-
-      html += '</div>'
+      tabsHTML += `<button class="program-date-tab" data-index="${i}" onclick="selectProgramDay(${i})">
+        <span class="pdt-label">${DAY_LABELS[i] || ''}</span>
+        <span class="pdt-date">${displayShort}</span>
+      </button>`
     })
+    tabsHTML += '</div><div id="programDayContent"></div>'
+    container.innerHTML = tabsHTML
 
-    container.innerHTML = html
+    // Auto-select day
+    let defaultDay = 0
+    try {
+      const now = new Date()
+      const eventStart = new Date(2026, 6, 20)
+      if (now >= eventStart && now < new Date(2026, 6, 25)) {
+        const diff = Math.floor((now - eventStart) / 86400000)
+        defaultDay = Math.min(diff, rawDates.length - 1)
+      }
+    } catch (e) {}
+    selectProgramDay(defaultDay)
   } catch (e) {
     container.innerHTML = '<div class="card"><p style="color:#ef4444;font-size:13px">Gagal memuat aturcara.</p></div>'
   }
 }
 
-// ===== PETUGAS PAGE =====
+function selectProgramDay(index) {
+  const tabs = document.querySelectorAll('.program-date-tab')
+  tabs.forEach((t, i) => t.classList.toggle('active', i === index))
+
+  const content = document.getElementById('programDayContent')
+  if (!content || !programData) return
+
+  const day = programData.days[index]
+  const parts = day.split(' ')
+  const month = MONTH_MAP[parts[1]] || parts[1] || ''
+  const displayDate = parts[0] ? `${parts[0]} ${month} ${parts[2] || ''}` : day
+
+  let html = `<div class="program-day-card">
+    <div class="program-day-header">
+      <div class="day-name">${DAY_LABELS[index] || ''}</div>
+      <div class="day-date">${displayDate}</div>
+    </div>`
+
+  let hasSlots = false
+  programData.slots.forEach(slot => {
+    const person = slot.schedule[index] || ''
+    if (!person) return
+    hasSlots = true
+    html += `<div class="program-slot">
+      <div class="slot-left">
+        <div class="slot-role">${slot.role}</div>
+        ${slot.time ? `<div class="slot-time">${slot.time}</div>` : ''}
+      </div>
+      <div class="slot-person">${person}</div>
+    </div>`
+  })
+
+  if (!hasSlots) html += '<div class="empty-state">Tiada jadual untuk hari ini.</div>'
+  html += '</div>'
+  content.innerHTML = html
+
+  // Scroll active tab into view
+  tabs.forEach(t => {
+    if (t.classList.contains('active')) {
+      t.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' })
+    }
+  })
+}
+
+// ===== PETUGAS =====
 async function loadPetugas() {
   const container = document.getElementById('petugasContainer')
   if (!container) return
   container.innerHTML = '<div class="loading-wrap"><div class="spinner"></div></div>'
   try {
     const data = await getPetugas()
-    if (!data.days.length) { container.innerHTML = '<div class="card"><p style="font-size:13px;color:var(--gray)">Tiada data petugas.</p></div>'; return }
+    if (!data.days.length) { container.innerHTML = '<div class="empty-state">Tiada data petugas.</div>'; return }
 
-    const dayLabels = ['Isnin', 'Selasa', 'Rabu', 'Khamis', 'Jumaat']
     let html = '<div class="petugas-grid">'
     data.days.forEach((d, i) => {
       html += `<div class="petugas-card" onclick="openPetugasModal(${i})">
         <div>
-          <div class="day-label">${dayLabels[i] || ''}</div>
+          <div class="day-label">${DAY_LABELS[i] || ''}</div>
           <div class="day-date">${d}</div>
           <div class="role-count">${data.roles.length} peranan</div>
         </div>
@@ -315,7 +355,6 @@ async function loadPetugas() {
       </div>`
     })
     html += '</div>'
-
     window.__petugasData = data
     container.innerHTML = html
   } catch (e) {
@@ -326,8 +365,7 @@ async function loadPetugas() {
 function openPetugasModal(dayIndex) {
   const data = window.__petugasData
   if (!data || !data.days[dayIndex]) return
-  const dayLabels = ['Isnin', 'Selasa', 'Rabu', 'Khamis', 'Jumaat']
-  const title = `${dayLabels[dayIndex] || ''}, ${data.days[dayIndex]}`
+  const title = `${DAY_LABELS[dayIndex] || ''}, ${data.days[dayIndex]}`
   let body = ''
   data.roles.forEach(r => {
     body += `<div class="role-item"><div class="role-dot"></div><div><div class="role-name">${r.role}</div><div class="role-person">${r.assignments[dayIndex] || '-'}</div></div></div>`
@@ -335,14 +373,14 @@ function openPetugasModal(dayIndex) {
   openModal(title, body)
 }
 
-// ===== ANNOUNCEMENTS PAGE =====
+// ===== ANNOUNCEMENTS =====
 async function loadAnnouncements() {
   const container = document.getElementById('announceContainer')
   if (!container) return
   container.innerHTML = '<div class="loading-wrap"><div class="spinner"></div></div>'
   try {
     const list = await getAnnouncements()
-    if (!list.length) { container.innerHTML = '<div class="card"><p style="font-size:13px;color:var(--gray)">Tiada pengumuman.</p></div>'; return }
+    if (!list.length) { container.innerHTML = '<div class="empty-state">Tiada pengumuman.</div>'; return }
 
     window.__announceData = list
     let html = '<div class="announce-grid">'
@@ -367,7 +405,7 @@ function openAnnounceModal(index) {
   openModal(a.title, `<p style="color:var(--gold);font-size:12px;font-weight:600;margin-bottom:12px">${a.date}</p><div style="font-size:14px;color:var(--gray);line-height:1.7;white-space:pre-line">${a.content}</div>`)
 }
 
-// ===== ATTENDANCE PAGE =====
+// ===== ATTENDANCE =====
 function initAttendancePage() {
   const form = document.getElementById('attendanceForm')
   const nameInput = document.getElementById('nameInput')
@@ -438,11 +476,10 @@ function initAttendancePage() {
   })
 }
 
-// ===== SPLASH PAGE =====
+// ===== SPLASH =====
 function initSplash() {
   const eventEl = document.getElementById('splashEventName')
   const themeEl = document.getElementById('splashTheme')
-
   getEventInfo().then(info => {
     if (eventEl) eventEl.textContent = info['Event Name'] || 'KKR (Kebaktian Kebangunan Rohani)'
     if (themeEl) themeEl.textContent = `"${info['Theme'] || 'The Great Physician Is In'}"`
