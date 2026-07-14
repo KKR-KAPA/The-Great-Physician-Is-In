@@ -76,9 +76,24 @@ async function getAnnouncements() {
   const rows = await fetchCSV(SHEETS.announcements)
   const list = []
   for (let i = 1; i < rows.length; i++) {
-    if (rows[i][0]) list.push({ date: rows[i][0].trim(), title: (rows[i][1] || '').trim(), content: (rows[i][2] || '').trim() })
+    if (rows[i][0]) list.push({ no: rows[i][0].trim(), title: (rows[i][1] || '').trim(), content: (rows[i][2] || '').trim() })
   }
   return list
+}
+
+function updateAnnounceBadge(count) {
+  const badge = document.getElementById('announceBadge')
+  if (badge) {
+    badge.textContent = count
+    badge.style.display = count > 0 ? 'flex' : 'none'
+  }
+}
+
+async function loadBadge() {
+  try {
+    const list = await getAnnouncements()
+    updateAnnounceBadge(list.length)
+  } catch (e) {}
 }
 
 async function getAttendanceStats() {
@@ -383,12 +398,15 @@ async function loadAnnouncements() {
     if (!list.length) { container.innerHTML = '<div class="empty-state">Tiada pengumuman.</div>'; return }
 
     window.__announceData = list
+    updateAnnounceBadge(list.length)
     let html = '<div class="announce-grid">'
     list.forEach((a, i) => {
       const preview = (a.content || '').replace(/\n/g, ' ').substring(0, 100)
       html += `<div class="announce-card" onclick="openAnnounceModal(${i})">
-        <div class="announce-date">${a.date}</div>
-        <div class="announce-title">${a.title}</div>
+        <div class="announce-card-top">
+          <span class="announce-badge">${a.no}</span>
+          <div class="announce-title">${a.title}</div>
+        </div>
         <div class="announce-preview">${preview}${(a.content || '').length > 100 ? '...' : ''}</div>
       </div>`
     })
@@ -402,7 +420,102 @@ async function loadAnnouncements() {
 function openAnnounceModal(index) {
   const a = window.__announceData[index]
   if (!a) return
-  openModal(a.title, `<p style="color:var(--gold);font-size:12px;font-weight:600;margin-bottom:12px">${a.date}</p><div style="font-size:14px;color:var(--gray);line-height:1.7;white-space:pre-line">${a.content}</div>`)
+  openModal(`${a.no}. ${a.title}`, `<div style="font-size:14px;color:var(--gray);line-height:1.7;white-space:pre-line">${a.content}</div>`)
+}
+
+// ===== GALLERY =====
+const GALLERY_SONGS = [
+  { title: 'Tabib Besar Ada Dekat', artist: 'LPMI', file: 'LPMI-69-TABIB-BESAR-ADA-DEKAT.mp3' },
+]
+
+let currentAudio = null
+let currentSong = -1
+
+function loadGallery() {
+  const container = document.getElementById('galleryContainer')
+  if (!container) return
+  let html = '<div class="gallery-list">'
+  GALLERY_SONGS.forEach((s, i) => {
+    html += `<div class="gallery-card" data-index="${i}">
+      <div class="gallery-card-header">
+        <div class="gallery-icon">
+          <svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+        </div>
+        <div class="gallery-meta">
+          <div class="gallery-title">${s.title}</div>
+          <div class="gallery-artist">${s.artist}</div>
+        </div>
+      </div>
+      <div class="gallery-controls">
+        <button class="gallery-play-btn" onclick="togglePlay(${i})" id="playBtn${i}">
+          <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        </button>
+        <div class="gallery-progress" onclick="seekAudio(${i}, event)">
+          <div class="gallery-progress-fill" id="progress${i}"></div>
+        </div>
+        <span class="gallery-time" id="time${i}">0:00</span>
+        <audio id="audio${i}" preload="none" src="${s.file}"></audio>
+      </div>
+    </div>`
+  })
+  html += '</div>'
+  container.innerHTML = html
+
+  GALLERY_SONGS.forEach((_, i) => {
+    const audio = document.getElementById(`audio${i}`)
+    audio.addEventListener('timeupdate', () => {
+      const progress = document.getElementById(`progress${i}`)
+      const timeEl = document.getElementById(`time${i}`)
+      if (progress && audio.duration) progress.style.width = `${(audio.currentTime / audio.duration) * 100}%`
+      if (timeEl) timeEl.textContent = formatTime(audio.currentTime)
+    })
+    audio.addEventListener('ended', () => {
+      const btn = document.getElementById(`playBtn${i}`)
+      if (btn) btn.innerHTML = `<svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>`
+      document.getElementById(`progress${i}`).style.width = '0%'
+      document.getElementById(`time${i}`).textContent = '0:00'
+      currentAudio = null
+      currentSong = -1
+    })
+  })
+}
+
+function togglePlay(index) {
+  const audio = document.getElementById(`audio${index}`)
+  const btn = document.getElementById(`playBtn${index}`)
+  if (!audio) return
+
+  if (currentAudio && currentAudio !== audio) {
+    currentAudio.pause()
+    const prevBtn = document.getElementById(`playBtn${currentSong}`)
+    if (prevBtn) prevBtn.innerHTML = `<svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>`
+  }
+
+  if (audio.paused) {
+    audio.play()
+    currentAudio = audio
+    currentSong = index
+    btn.innerHTML = `<svg viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>`
+  } else {
+    audio.pause()
+    btn.innerHTML = `<svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>`
+    currentAudio = null
+    currentSong = -1
+  }
+}
+
+function seekAudio(index, event) {
+  const audio = document.getElementById(`audio${index}`)
+  if (!audio || !audio.duration) return
+  const rect = event.currentTarget.getBoundingClientRect()
+  const pct = (event.clientX - rect.left) / rect.width
+  audio.currentTime = pct * audio.duration
+}
+
+function formatTime(seconds) {
+  const m = Math.floor(seconds / 60)
+  const s = Math.floor(seconds % 60)
+  return `${m}:${s < 10 ? '0' : ''}${s}`
 }
 
 // ===== ATTENDANCE =====
@@ -499,9 +612,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (document.getElementById('splashPage')) initSplash()
   if (document.getElementById('attendancePage')) initAttendancePage()
-  if (document.getElementById('homePage')) { loadEventInfo(); setInterval(renderStats, 30000) }
-  if (document.getElementById('programPage')) loadProgram()
-  if (document.getElementById('petugasPage')) loadPetugas()
+  if (document.getElementById('homePage')) { loadEventInfo(); setInterval(renderStats, 30000); loadBadge() }
+  if (document.getElementById('programPage')) { loadProgram(); loadBadge() }
+  if (document.getElementById('petugasPage')) { loadPetugas(); loadBadge() }
+  if (document.getElementById('galleryPage')) { loadGallery(); loadBadge() }
   if (document.getElementById('announcePage')) loadAnnouncements()
 
   setupWhatsApp()
