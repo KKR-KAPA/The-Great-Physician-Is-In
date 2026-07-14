@@ -27,7 +27,7 @@
 </head>
 <body id="attendancePage">
   <div style="min-height:100vh;background:linear-gradient(135deg,var(--primary),#1a2a5e,var(--primary));display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px">
-    <img src="../LOGO-SDA.webp" alt="SDA" style="width:60px;height:60px;object-fit:contain;margin-bottom:24px;opacity:0.8" onerror="this.style.display='none'">
+    <img src="../LOGO-SDA.webp" alt="SDA" style="width:80px;height:80px;object-fit:contain;margin-bottom:24px;opacity:0.8" onerror="this.style.display='none'">
 
     <div id="formSection" style="width:100%;max-width:400px">
       <h1 style="color:white;font-size:22px;font-weight:700;text-align:center;margin-bottom:6px;letter-spacing:-0.3px">Kehadiran KKR</h1>
@@ -39,8 +39,17 @@
           <input id="nameInput" type="text" class="form-input" placeholder="Masukkan nama anda" required>
         </div>
         <div class="form-group">
-          <label>No. Telefon</label>
-          <input id="phoneInput" type="tel" class="form-input" placeholder="Cth: 60123456789" required>
+          <label>Gereja Asal</label>
+          <select id="churchSelect" class="form-input" required>
+            <option value="">Pilih gereja...</option>
+            <option>Gereja Kapa</option>
+            <option>Gereja Koporingan</option>
+            <option>Gereja Kitapol</option>
+            <option>Gereja Minangkob</option>
+            <option>Gereja Togop</option>
+            <option>Cabang Sekolah Sabat Daerah Kapa</option>
+            <option>Lain-Lain</option>
+          </select>
         </div>
         <button id="submitBtn" type="submit" class="btn btn-gold btn-block" style="margin-top:8px">Check In</button>
       </form>
@@ -81,31 +90,32 @@ function parseCSV(text) {
 const today = getTodayMsia()
 const LS_KEY = `checkin_${today}`
 
-function checkLocalDuplicate(phone) {
+function checkLocalDuplicate(key) {
   const stored = localStorage.getItem(LS_KEY)
   if (!stored) return false
   try {
     const list = JSON.parse(stored)
-    return Array.isArray(list) && list.includes(phone.trim())
+    return Array.isArray(list) && list.includes(key)
   } catch { return false }
 }
 
-function saveLocalCheckin(phone) {
+function saveLocalCheckin(key) {
   const stored = localStorage.getItem(LS_KEY)
   let list = []
   try { list = JSON.parse(stored) || [] } catch { list = [] }
   if (!Array.isArray(list)) list = []
-  if (!list.includes(phone.trim())) list.push(phone.trim())
+  if (!list.includes(key)) list.push(key)
   localStorage.setItem(LS_KEY, JSON.stringify(list))
 }
 
 document.getElementById('attendanceForm').addEventListener('submit', async function(e) {
   e.preventDefault()
   const name = document.getElementById('nameInput').value.trim()
-  const phone = document.getElementById('phoneInput').value.trim()
-  if (!name || !phone) return
+  const church = document.getElementById('churchSelect').value
+  if (!name || !church) return
 
-  if (checkLocalDuplicate(phone)) {
+  const dupKey = name + '|' + church
+  if (checkLocalDuplicate(dupKey)) {
     showStatus(true)
     return
   }
@@ -120,12 +130,13 @@ document.getElementById('attendanceForm').addEventListener('submit', async funct
     const res = await fetch(ATTENDANCE_SHEET, { cache: 'no-store' })
     const rows = parseCSV(await res.text())
     isDuplicate = rows.slice(1).some(r => {
-      const rowDate = r[1] || ''
-      const rowPhone = (r[3] || '').trim()
-      return rowDate === today && rowPhone === phone.trim()
+      const rowDay = (r[1] || '').trim()
+      const rowName = (r[2] || '').trim().toLowerCase()
+      const rowChurch = (r[3] || '').trim().toLowerCase()
+      return rowDay === today && rowName === name.toLowerCase() && rowChurch === church.toLowerCase()
     })
   } catch (e) {
-    if (checkLocalDuplicate(phone)) {
+    if (checkLocalDuplicate(dupKey)) {
       showStatus(true)
       return
     }
@@ -137,12 +148,12 @@ document.getElementById('attendanceForm').addEventListener('submit', async funct
         method: 'POST',
         mode: 'no-cors',
         headers: { 'Content-Type': 'text/plain' },
-        body: JSON.stringify({ name, phone }),
+        body: JSON.stringify({ name, church }),
       })
     } catch (e) {}
   }
 
-  saveLocalCheckin(phone)
+  saveLocalCheckin(dupKey)
   showStatus(isDuplicate)
 })
 

@@ -98,8 +98,8 @@ async function loadBadge() {
 /* ── Get today's date in Malaysia time (UTC+8) ── */
 function getTodayMsia() {
   const now = new Date()
-  const msia = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Kuala_Lumpur' }))
-  return msia.toISOString().split('T')[0]
+  const msia = new Date(now.getTime() + 8 * 3600000)
+  return msia.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })
 }
 
 /* ── Attendance stats ── */
@@ -110,7 +110,7 @@ async function getAttendanceStats() {
     const todayStr = getTodayMsia()
     let today = 0
     rows.forEach(r => {
-      const rowDate = r[3] ? r[3].trim() : ''
+      const rowDate = r[1] ? r[1].trim() : ''
       if (rowDate === todayStr) today++
     })
     return { total: rows.length, today }
@@ -144,7 +144,7 @@ async function renderAttendanceGraph() {
     const csv = await fetchCSV(SHEETS.attendance)
     const dayMap = {}
     csv.slice(1).filter(r => r[0]).forEach(r => {
-      const d = r[3] ? r[3].trim() : ''
+      const d = r[1] ? r[1].trim() : ''
       if (d) dayMap[d] = (dayMap[d] || 0) + 1
     })
     const dates = Object.keys(dayMap).sort()
@@ -156,8 +156,8 @@ async function renderAttendanceGraph() {
     const dayNames = ['Ahad', 'Isnin', 'Selasa', 'Rabu', 'Khamis', 'Jumaat', 'Sabtu']
     let html = '<div class="graph-body">'
     dates.forEach((d, i) => {
-      const day = new Date(d + 'T00:00:00')
-      const label = !isNaN(day.getTime()) ? dayNames[day.getDay()] : d
+      const day = new Date(d)
+      const label = !isNaN(day.getTime()) ? dayNames[day.getDay()] : d.split(' ')[0] || d
       const pct = (dayMap[d] / max) * 100
       html += `
         <div class="graph-row">
