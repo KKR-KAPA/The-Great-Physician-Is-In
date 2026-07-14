@@ -137,6 +137,44 @@ async function renderStats() {
   `
 }
 
+async function renderAttendanceGraph() {
+  const el = document.getElementById('attendanceGraph')
+  if (!el) return
+  try {
+    const csv = await fetchCSV(SHEETS.attendance)
+    const dayMap = {}
+    csv.slice(1).filter(r => r[0]).forEach(r => {
+      const d = r[3] ? r[3].trim() : ''
+      if (d) dayMap[d] = (dayMap[d] || 0) + 1
+    })
+    const dates = Object.keys(dayMap).sort()
+    if (!dates.length) {
+      el.innerHTML = '<p style="color:var(--gray);font-size:13px;text-align:center">Tiada data kehadiran.</p>'
+      return
+    }
+    const max = Math.max(...Object.values(dayMap), 1)
+    const dayNames = ['Ahad', 'Isnin', 'Selasa', 'Rabu', 'Khamis', 'Jumaat', 'Sabtu']
+    let html = '<div class="graph-body">'
+    dates.forEach((d, i) => {
+      const day = new Date(d + 'T00:00:00')
+      const label = !isNaN(day.getTime()) ? dayNames[day.getDay()] : d
+      const pct = (dayMap[d] / max) * 100
+      html += `
+        <div class="graph-row">
+          <span class="graph-label">${label}</span>
+          <div class="graph-bar-wrap">
+            <div class="graph-bar" style="width:${pct}%;transition-delay:${i * 0.06}s"></div>
+          </div>
+          <span class="graph-count">${dayMap[d]}</span>
+        </div>`
+    })
+    html += '</div>'
+    el.innerHTML = html
+  } catch (e) {
+    el.innerHTML = '<p style="color:var(--gray);font-size:13px;text-align:center">Tiada data kehadiran.</p>'
+  }
+}
+
 // ===== MODAL =====
 function openModal(title, bodyHTML) {
   const overlay = document.getElementById('modalOverlay')
@@ -250,16 +288,11 @@ async function loadEventInfo() {
     container.appendChild(statsBar)
     renderStats()
 
-    const mapCard = document.createElement('div')
-    mapCard.className = 'card'
-    mapCard.innerHTML = `
-      <h2 style="font-size:20px;margin-bottom:16px">📍 Lokasi</h2>
-      <div class="info-item" style="margin-bottom:12px"><span class="info-label">Tempat</span><span class="info-value">${info['Venue'] || '-'}</span></div>
-      ${info['Venue Google Map'] ? `<a href="${info['Venue Google Map']}" target="_blank" class="info-link" style="margin-top:4px">
-        <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg> Buka di Google Maps
-      </a>` : ''}
-    `
-    container.appendChild(mapCard)
+    const graphCard = document.createElement('div')
+    graphCard.className = 'card'
+    graphCard.innerHTML = '<h2 style="font-size:20px;margin-bottom:16px">📊 Kehadiran Setiap Hari</h2><div id="attendanceGraph"><div class="loading-wrap"><div class="spinner"></div></div></div>'
+    container.appendChild(graphCard)
+    renderAttendanceGraph()
 
     if (info['Livestream']) {
       const ls = document.createElement('div')
@@ -554,7 +587,7 @@ function initSplash() {
   const eventEl = document.getElementById('splashEventName')
   const themeEl = document.getElementById('splashTheme')
   getEventInfo().then(info => {
-    if (eventEl) eventEl.textContent = info['Event Name'] || 'KKR (Kebaktian Kebangunan Rohani)'
+    if (eventEl) eventEl.textContent = info['Event Name'] || 'KEBAKTIAN KEBANGUNAN ROHANI'
     if (themeEl) themeEl.textContent = `"${info['Theme'] || 'The Great Physician Is In'}"`
   }).catch(() => {})
 
@@ -571,7 +604,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (overlay) overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal() })
 
   if (document.getElementById('splashPage')) initSplash()
-  if (document.getElementById('homePage')) { loadEventInfo(); loadBadge(); setInterval(renderStats, 30000) }
+  if (document.getElementById('homePage')) { loadEventInfo(); loadBadge(); setInterval(renderStats, 30000); setInterval(renderAttendanceGraph, 30000) }
   if (document.getElementById('programPage')) { loadProgram(); loadBadge() }
   if (document.getElementById('petugasPage')) { loadPetugas(); loadBadge() }
   if (document.getElementById('galleryPage')) { loadGallery(); loadBadge() }
