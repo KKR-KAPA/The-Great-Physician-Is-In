@@ -32,6 +32,7 @@
     <div id="formSection" style="width:100%;max-width:400px">
       <h1 style="color:white;font-size:22px;font-weight:700;text-align:center;margin-bottom:6px;letter-spacing:-0.3px">Kehadiran KKR</h1>
       <p style="color:var(--gold);font-size:13px;text-align:center;margin-bottom:32px">Sila isi maklumat anda untuk check in</p>
+      <p id="welcomeMsg" style="display:none;color:var(--gold);font-size:13px;text-align:center;margin-bottom:16px"></p>
 
       <form id="attendanceForm">
         <div class="form-group">
@@ -43,6 +44,7 @@
           <input id="phoneInput" type="tel" class="form-input" placeholder="Cth: 60123456789" required>
         </div>
         <button id="submitBtn" type="submit" class="btn btn-gold btn-block" style="margin-top:8px">Check In</button>
+        <a id="resetProfile" href="#" style="display:none;color:rgba(255,255,255,0.4);font-size:11px;text-align:center;margin-top:8px;text-decoration:none;display:block" onclick="return clearProfile()">Bukan anda? Klik di sini</a>
       </form>
     </div>
 
@@ -80,6 +82,12 @@ function parseCSV(text) {
 
 const today = getTodayMsia()
 const LS_KEY = `checkin_${today}`
+const USER_KEY = 'checkin_user'
+
+function clearProfile() {
+  localStorage.removeItem(USER_KEY)
+  location.reload()
+}
 
 function checkLocalDuplicate(phone) {
   const stored = localStorage.getItem(LS_KEY)
@@ -98,6 +106,31 @@ function saveLocalCheckin(phone) {
   if (!list.includes(phone.trim())) list.push(phone.trim())
   localStorage.setItem(LS_KEY, JSON.stringify(list))
 }
+
+// Auto-fill from saved profile + auto-redirect if already checked in today
+;(function() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(USER_KEY))
+    if (saved && saved.name) {
+      const stored = localStorage.getItem(LS_KEY)
+      if (stored) {
+        try {
+          const list = JSON.parse(stored)
+          if (Array.isArray(list) && list.includes(saved.phone)) {
+            window.location.href = '../home.html'
+            return
+          }
+        } catch (e) {}
+      }
+      document.getElementById('nameInput').value = saved.name
+      if (saved.phone) document.getElementById('phoneInput').value = saved.phone
+      const msg = document.getElementById('welcomeMsg')
+      msg.style.display = 'block'
+      msg.textContent = 'Selamat datang kembali, ' + saved.name + '!'
+      document.getElementById('resetProfile').style.display = 'block'
+    }
+  } catch (e) {}
+})()
 
 document.getElementById('attendanceForm').addEventListener('submit', async function(e) {
   e.preventDefault()
@@ -132,6 +165,7 @@ document.getElementById('attendanceForm').addEventListener('submit', async funct
   }
 
   if (!isDuplicate) {
+    localStorage.setItem(USER_KEY, JSON.stringify({ name, phone }))
     try {
       await fetch(APPS_SCRIPT_URL, {
         method: 'POST',
