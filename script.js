@@ -109,11 +109,14 @@ async function getAttendanceStats() {
     const rows = csv.slice(1).filter(r => r[0] && r[0].trim())
     const todayStr = getTodayMsia()
     let today = 0
+    let total = 0
     rows.forEach(r => {
       const rowDate = r[1] ? r[1].trim() : ''
-      if (rowDate === todayStr) today++
+      const bil = parseInt(r[4], 10) || 1
+      total += bil
+      if (rowDate === todayStr) today += bil
     })
-    return { total: rows.length, today }
+    return { total, today }
   } catch (e) {
     console.warn('Attendance stats error:', e)
     return null
@@ -145,7 +148,8 @@ async function renderAttendanceGraph() {
     const dayMap = {}
     csv.slice(1).filter(r => r[0]).forEach(r => {
       const d = r[1] ? r[1].trim() : ''
-      if (d) dayMap[d] = (dayMap[d] || 0) + 1
+      const bil = parseInt(r[4], 10) || 1
+      if (d) dayMap[d] = (dayMap[d] || 0) + bil
     })
     const dates = Object.keys(dayMap).sort()
     if (!dates.length) {
