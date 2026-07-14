@@ -142,11 +142,11 @@ async function renderStats() {
   if (!stats) return
 
   if (msiaDate > end) {
-    container.innerHTML = '<div class="stat-card" style="width:100%"><span class="stat-number">${stats.total}</span><span class="stat-label">Jumlah Kehadiran Keseluruhan</span></div>'
+    container.innerHTML = `<div class="stat-card" style="width:100%"><span class="stat-number">${stats.total}</span><span class="stat-label">Jumlah Kehadiran Keseluruhan</span></div>`
     return
   }
 
-  container.innerHTML = '<div class="stat-card" style="width:100%"><span class="stat-number">${stats.today}</span><span class="stat-label">Kehadiran Hari Ini</span></div>'
+  container.innerHTML = `<div class="stat-card" style="width:100%"><span class="stat-number">${stats.today}</span><span class="stat-label">Kehadiran Hari Ini</span></div>`
 }
 
 async function renderAttendanceGraph() {

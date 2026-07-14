@@ -451,7 +451,7 @@ body {
 .fab-main .fab-close-icon { display: none; }
 .contact-fab.open .fab-main .fab-icon { display: none; }
 .contact-fab.open .fab-main .fab-close-icon { display: block; }
-.contact-fab.open .fab-main { background: #ef4444; box-shadow: 0 4px 20px rgba(239,68,68,0.35); }
+.contact-fab.open .fab-main { background: #ef4444; box-shadow: 0 4px 20px rgba(239,68,68,0.35); animation: none; }
 .contact-fab.open .fab-label { display: none; }
 .fab-options {
   display: flex;

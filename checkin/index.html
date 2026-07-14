@@ -65,7 +65,7 @@
         </div>
         <button id="submitBtn" type="submit" class="btn btn-gold btn-block" style="margin-top:8px">Check In</button>
         <a href="../home.html" style="color:rgba(255,255,255,0.35);font-size:12px;text-align:center;margin-top:16px;text-decoration:none;display:block">Ke Laman Utama →</a>
-        <a id="resetProfile" href="#" style="display:none;color:rgba(255,255,255,0.4);font-size:11px;text-align:center;margin-top:8px;text-decoration:none;display:block" onclick="return clearProfile()">Bukan anda? Klik di sini</a>
+        <a id="resetProfile" href="javascript:void(0)" style="display:none;color:rgba(255,255,255,0.4);font-size:11px;text-align:center;margin-top:8px;text-decoration:none" onclick="return clearProfile()">Bukan anda? Klik di sini</a>
       </form>
     </div>
 
@@ -181,8 +181,7 @@ document.getElementById('attendanceForm').addEventListener('submit', async funct
   const bilangan = parseInt(document.getElementById('bilanganInput').value, 10) || 1
   if (!name || !church) return
 
-  const bil = parseInt(document.getElementById('bilanganInput').value, 10) || 1
-  if (!confirm(`Nama: ${name}\nGereja: ${church}\nBilangan: ${bil}\n\nBetul?`)) return
+  if (!confirm(`Nama: ${name}\nGereja: ${church}\nBilangan: ${bilangan}\n\nBetul?`)) return
 
   const dupKey = (name + '|' + church).toLowerCase()
   if (checkLocalDuplicate(dupKey)) {
