@@ -4,6 +4,7 @@ const SHEETS = {
   program: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSBR3ctB0FYmGtvlzTkTKe1-ZT8mN7cnA8pDUfnrBsANhchBYPB3swa1Ig83quvgALlynFOlDCwQEc1/pub?gid=699491117&single=true&output=csv',
   petugas: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSBR3ctB0FYmGtvlzTkTKe1-ZT8mN7cnA8pDUfnrBsANhchBYPB3swa1Ig83quvgALlynFOlDCwQEc1/pub?gid=1535279811&single=true&output=csv',
   announcements: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSBR3ctB0FYmGtvlzTkTKe1-ZT8mN7cnA8pDUfnrBsANhchBYPB3swa1Ig83quvgALlynFOlDCwQEc1/pub?gid=496101149&single=true&output=csv',
+  attendance: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSBR3ctB0FYmGtvlzTkTKe1-ZT8mN7cnA8pDUfnrBsANhchBYPB3swa1Ig83quvgALlynFOlDCwQEc1/pub?gid=1475228326&single=true&output=csv',
 }
 
 const DAY_LABELS = ['Isnin', 'Selasa', 'Rabu', 'Khamis', 'Jumaat']
@@ -94,6 +95,48 @@ async function loadBadge() {
   } catch (e) {}
 }
 
+/* ── Get today's date in Malaysia time (UTC+8) ── */
+function getTodayMsia() {
+  const now = new Date()
+  const msia = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Kuala_Lumpur' }))
+  return msia.toISOString().split('T')[0]
+}
+
+/* ── Attendance stats ── */
+async function getAttendanceStats() {
+  try {
+    const csv = await fetchCSV(SHEETS.attendance)
+    const rows = csv.slice(1).filter(r => r[0] && r[0].trim())
+    const todayStr = getTodayMsia()
+    let today = 0
+    rows.forEach(r => {
+      const rowDate = r[3] ? r[3].trim() : ''
+      if (rowDate === todayStr) today++
+    })
+    return { total: rows.length, today }
+  } catch (e) {
+    console.warn('Attendance stats error:', e)
+    return null
+  }
+}
+
+async function renderStats() {
+  const container = document.getElementById('statsContainer')
+  if (!container) return
+  const stats = await getAttendanceStats()
+  if (!stats) return
+  container.innerHTML = `
+    <div class="stat-card">
+      <span class="stat-number">${stats.today}</span>
+      <span class="stat-label">Kehadiran Hari Ini</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-number">${stats.total}</span>
+      <span class="stat-label">Jumlah Keseluruhan</span>
+    </div>
+  `
+}
+
 // ===== MODAL =====
 function openModal(title, bodyHTML) {
   const overlay = document.getElementById('modalOverlay')
@@ -136,8 +179,8 @@ function setupContactFab() {
         waBtn.href = `https://wa.me/${phone}?text=Hai%20${encodeURIComponent(contact)}%2C%20saya%20ada%20soalan%20berkaitan%20KKR.`
       }
     }
-    if (formBtn && info['Google Form Link']) {
-      formBtn.href = info['Google Form Link']
+    if (formBtn) {
+      formBtn.href = info['Google Form Link'] || 'https://forms.gle/P8ZvxiimCh8nDJnq5'
     }
   }).catch(() => {})
 }
@@ -170,7 +213,7 @@ async function loadEventInfo() {
 
     speakerInfo = {
       name: info['Main Speaker'] || 'Pr. Taehyung Kim',
-      bio: info['Speaker Bio'] || 'Maklumat latar belakang akan dikemaskini.',
+      bio: 'Pastor Kim Tae Hyung kini sedang melanjutkan pengajian di peringkat Doktor Pelayanan (Doctor of Ministry, D.Min.) di Adventist International Institute of Advanced Studies (AIIAS). Beliau kini memberi tumpuan kepada latihan misionari serta penyelidikan bagi menyiapkan disertasi kedoktorannya.',
     }
 
     const heroDates = document.getElementById('heroDates')
@@ -200,6 +243,12 @@ async function loadEventInfo() {
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
       </div>`
     container.appendChild(spk)
+
+    const statsBar = document.createElement('div')
+    statsBar.id = 'statsContainer'
+    statsBar.className = 'stats-bar'
+    container.appendChild(statsBar)
+    renderStats()
 
     const mapCard = document.createElement('div')
     mapCard.className = 'card'
@@ -394,6 +443,21 @@ const GALLERY_SONGS = [
 let currentAudio = null
 let currentSong = -1
 
+const LIRIK = `(1)<br>Tabib besar ada dekat,<br>Yesus yang berkasihan;<br>Hai orang yang berhati brat,<br>Dengarlah suara Tuhan.<br><br><strong>Korus</strong><br>Lagu yang amat merdu<br>Bagi syurga dan dunia<br>Nyanyian amat merdu:<br>Nama Tuhan Yesus.<br><br>(2)<br>Ketakutan dihapuskan<br>Oleh namanya Yesus;<br>Aku rindulah dengarkan<br>Nama Yesus yang indah<br><br>(3)<br>Hormati dan puji Domba<br>Yang mati ganti kita;<br>Betapa manis bunyinya<br>Khabar slamat yang indah.<br><br>(4)<br>Bila nanti Tuhan datang,<br>Kita akan ke syurga;<br>Di sana kita slalu snang<br>Dan memakai mahkota.`
+
+function toggleLirik(index) {
+  const el = document.getElementById(`lirik${index}`)
+  if (!el) return
+  const btn = document.getElementById(`lirikBtn${index}`)
+  if (el.style.display === 'none' || !el.style.display) {
+    el.style.display = 'block'
+    if (btn) btn.textContent = 'Tutup Lirik'
+  } else {
+    el.style.display = 'none'
+    if (btn) btn.textContent = '📄 Lirik'
+  }
+}
+
 function loadGallery() {
   const container = document.getElementById('galleryContainer')
   if (!container) return
@@ -418,6 +482,10 @@ function loadGallery() {
         </div>
         <span class="gallery-time" id="time${i}">0:00</span>
         <audio id="audio${i}" preload="none" src="${s.file}"></audio>
+      </div>
+      <button class="lirik-toggle" id="lirikBtn${i}" onclick="toggleLirik(${i})">📄 Lirik</button>
+      <div class="lirik-content" id="lirik${i}" style="display:none">
+        <div class="lirik-body">${LIRIK}</div>
       </div>
     </div>`
   })
@@ -503,7 +571,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (overlay) overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal() })
 
   if (document.getElementById('splashPage')) initSplash()
-  if (document.getElementById('homePage')) { loadEventInfo(); loadBadge() }
+  if (document.getElementById('homePage')) { loadEventInfo(); loadBadge(); setInterval(renderStats, 30000) }
   if (document.getElementById('programPage')) { loadProgram(); loadBadge() }
   if (document.getElementById('petugasPage')) { loadPetugas(); loadBadge() }
   if (document.getElementById('galleryPage')) { loadGallery(); loadBadge() }

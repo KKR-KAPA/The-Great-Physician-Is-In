@@ -78,17 +78,42 @@ function parseCSV(text) {
   return rows
 }
 
+const today = getTodayMsia()
+const LS_KEY = `checkin_${today}`
+
+function checkLocalDuplicate(phone) {
+  const stored = localStorage.getItem(LS_KEY)
+  if (!stored) return false
+  try {
+    const list = JSON.parse(stored)
+    return Array.isArray(list) && list.includes(phone.trim())
+  } catch { return false }
+}
+
+function saveLocalCheckin(phone) {
+  const stored = localStorage.getItem(LS_KEY)
+  let list = []
+  try { list = JSON.parse(stored) || [] } catch { list = [] }
+  if (!Array.isArray(list)) list = []
+  if (!list.includes(phone.trim())) list.push(phone.trim())
+  localStorage.setItem(LS_KEY, JSON.stringify(list))
+}
+
 document.getElementById('attendanceForm').addEventListener('submit', async function(e) {
   e.preventDefault()
   const name = document.getElementById('nameInput').value.trim()
   const phone = document.getElementById('phoneInput').value.trim()
   if (!name || !phone) return
 
+  if (checkLocalDuplicate(phone)) {
+    showStatus(true)
+    return
+  }
+
   const btn = document.getElementById('submitBtn')
   btn.disabled = true
   btn.innerHTML = '<div style="width:20px;height:20px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto"></div>'
 
-  const today = getTodayMsia()
   let isDuplicate = false
 
   try {
@@ -99,7 +124,12 @@ document.getElementById('attendanceForm').addEventListener('submit', async funct
       const rowPhone = (r[3] || '').trim()
       return rowDate === today && rowPhone === phone.trim()
     })
-  } catch (e) {}
+  } catch (e) {
+    if (checkLocalDuplicate(phone)) {
+      showStatus(true)
+      return
+    }
+  }
 
   if (!isDuplicate) {
     try {
@@ -112,6 +142,11 @@ document.getElementById('attendanceForm').addEventListener('submit', async funct
     } catch (e) {}
   }
 
+  saveLocalCheckin(phone)
+  showStatus(isDuplicate)
+})
+
+function showStatus(isDuplicate) {
   document.getElementById('formSection').style.display = 'none'
   const statusSection = document.getElementById('statusSection')
   statusSection.style.display = 'block'
@@ -123,7 +158,7 @@ document.getElementById('attendanceForm').addEventListener('submit', async funct
   }
 
   setTimeout(() => { window.location.href = '../home.html' }, 2500)
-})
+}
   </script>
 </body>
 </html>
