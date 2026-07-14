@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>Kehadiran - KKR Kapa 2026</title>
+  <link rel="stylesheet" href="../style.css">
+  <style>
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 13px; color: rgba(255,255,255,0.7); margin-bottom: 6px; font-weight: 500; }
+    .form-input { width: 100%; padding: 14px 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.15); font-size: 16px; background: rgba(255,255,255,0.08); color: white; backdrop-filter: blur(4px); outline: none; -webkit-appearance: none; box-sizing: border-box; }
+    .form-input:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(200,162,78,0.12); }
+    .form-input::placeholder { color: rgba(255,255,255,0.35); }
+    .status-box { text-align: center; }
+    .status-icon { width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; }
+    .status-icon.success { background: var(--sage); }
+    .status-icon.duplicate { background: #eab308; }
+    .status-icon svg { width: 40px; height: 40px; color: white; }
+    .status-box h2 { font-size: 22px; margin-bottom: 6px; color: white; font-weight: 800; letter-spacing: -0.3px; }
+    .status-box .status-msg { color: var(--gold); font-size: 15px; }
+    .status-box .status-sub { color: rgba(255,255,255,0.35); font-size: 13px; margin-top: 24px; }
+    .btn-gold { background: var(--gold); color: var(--white); box-shadow: 0 4px 14px rgba(200,162,78,0.35); }
+    .btn-gold:hover { background: #b8943e; }
+    .btn-block { width: 100%; }
+  </style>
+
+</head>
+<body id="attendancePage">
+  <div style="min-height:100vh;background:linear-gradient(135deg,var(--primary),#1a2a5e,var(--primary));display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px">
+    <img src="../LOGO-SDA.webp" alt="SDA" style="width:60px;height:60px;object-fit:contain;margin-bottom:24px;opacity:0.8" onerror="this.style.display='none'">
+
+    <div id="formSection" style="width:100%;max-width:400px">
+      <h1 style="color:white;font-size:22px;font-weight:700;text-align:center;margin-bottom:6px;letter-spacing:-0.3px">Kehadiran KKR</h1>
+      <p style="color:var(--gold);font-size:13px;text-align:center;margin-bottom:32px">Sila isi maklumat anda untuk check in</p>
+
+      <form id="attendanceForm">
+        <div class="form-group">
+          <label>Nama Penuh</label>
+          <input id="nameInput" type="text" class="form-input" placeholder="Masukkan nama anda" required>
+        </div>
+        <div class="form-group">
+          <label>No. Telefon</label>
+          <input id="phoneInput" type="tel" class="form-input" placeholder="Cth: 60123456789" required>
+        </div>
+        <button id="submitBtn" type="submit" class="btn btn-gold btn-block" style="margin-top:8px">Check In</button>
+      </form>
+    </div>
+
+    <div id="statusSection" style="display:none;width:100%;max-width:400px"></div>
+  </div>
+
+  <script>
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzIqTb_aMQWQtH-_uzttgc_DZg5shogZ6A6sVf5mrutiZ8P5hBkOql8uzhZftQpgloU/exec'
+const ATTENDANCE_SHEET = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSBR3ctB0FYmGtvlzTkTKe1-ZT8mN7cnA8pDUfnrBsANhchBYPB3swa1Ig83quvgALlynFOlDCwQEc1/pub?gid=1475228326&single=true&output=csv'
+
+function getTodayMsia() {
+  const now = new Date()
+  const msia = new Date(now.getTime() + 8 * 3600000)
+  return msia.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })
+}
+
+function parseCSV(text) {
+  const items = []; let cur = ''; let inQ = false
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i]
+    if (c === '"') { inQ = !inQ; continue }
+    if (c === ',' && !inQ) { items.push(cur.trim()); cur = ''; continue }
+    if ((c === '\n' || c === '\r') && !inQ) { if (cur) items.push(cur.trim()); cur = ''; if (c === '\r') i++; items.push('__ROW__'); continue }
+    cur += c
+  }
+  if (cur) items.push(cur.trim())
+  const rows = []; let row = []
+  for (const item of items) {
+    if (item === '__ROW__') { if (row.length) rows.push(row); row = []; }
+    else row.push(item)
+  }
+  if (row.length) rows.push(row)
+  return rows
+}
+
+document.getElementById('attendanceForm').addEventListener('submit', async function(e) {
+  e.preventDefault()
+  const name = document.getElementById('nameInput').value.trim()
+  const phone = document.getElementById('phoneInput').value.trim()
+  if (!name || !phone) return
+
+  const btn = document.getElementById('submitBtn')
+  btn.disabled = true
+  btn.innerHTML = '<div style="width:20px;height:20px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto"></div>'
+
+  const today = getTodayMsia()
+  let isDuplicate = false
+
+  try {
+    const res = await fetch(ATTENDANCE_SHEET, { cache: 'no-store' })
+    const rows = parseCSV(await res.text())
+    isDuplicate = rows.slice(1).some(r => {
+      const rowDate = r[1] || ''
+      const rowPhone = (r[3] || '').trim()
+      return rowDate === today && rowPhone === phone.trim()
+    })
+  } catch (e) {}
+
+  if (!isDuplicate) {
+    try {
+      await fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({ name, phone }),
+      })
+    } catch (e) {}
+  }
+
+  document.getElementById('formSection').style.display = 'none'
+  const statusSection = document.getElementById('statusSection')
+  statusSection.style.display = 'block'
+
+  if (isDuplicate) {
+    statusSection.innerHTML = '<div class="status-box"><div class="status-icon duplicate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 9v2m0 4h.01"/></svg></div><h2>Anda Sudah Check In</h2><p class="status-msg" style="color:#fcd34d">Anda sudah check in hari ini</p><p class="status-sub">Mengalihkan...</p></div>'
+  } else {
+    statusSection.innerHTML = '<div class="status-box"><div class="status-icon success"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg></div><h2>Check In Berjaya!</h2><p class="status-msg">Selamat datang ke KKR</p><p class="status-sub">Mengalihkan...</p></div>'
+  }
+
+  setTimeout(() => { window.location.href = '../home.html' }, 2500)
+})
+  </script>
+</body>
+</html>

@@ -4,9 +4,7 @@ const SHEETS = {
   program: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSBR3ctB0FYmGtvlzTkTKe1-ZT8mN7cnA8pDUfnrBsANhchBYPB3swa1Ig83quvgALlynFOlDCwQEc1/pub?gid=699491117&single=true&output=csv',
   petugas: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSBR3ctB0FYmGtvlzTkTKe1-ZT8mN7cnA8pDUfnrBsANhchBYPB3swa1Ig83quvgALlynFOlDCwQEc1/pub?gid=1535279811&single=true&output=csv',
   announcements: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSBR3ctB0FYmGtvlzTkTKe1-ZT8mN7cnA8pDUfnrBsANhchBYPB3swa1Ig83quvgALlynFOlDCwQEc1/pub?gid=496101149&single=true&output=csv',
-  attendance: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSBR3ctB0FYmGtvlzTkTKe1-ZT8mN7cnA8pDUfnrBsANhchBYPB3swa1Ig83quvgALlynFOlDCwQEc1/pub?gid=1475228326&single=true&output=csv',
 }
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzIqTb_aMQWQtH-_uzttgc_DZg5shogZ6A6sVf5mrutiZ8P5hBkOql8uzhZftQpgloU/exec'
 
 const DAY_LABELS = ['Isnin', 'Selasa', 'Rabu', 'Khamis', 'Jumaat']
 const MONTH_MAP = { Jan: 'Januari', Feb: 'Februari', Mar: 'Mac', Apr: 'April', May: 'Mei', Jun: 'Jun', Jul: 'Julai', Aug: 'Ogos', Sep: 'September', Oct: 'Oktober', Nov: 'November', Dec: 'Disember' }
@@ -96,25 +94,6 @@ async function loadBadge() {
   } catch (e) {}
 }
 
-async function getAttendanceStats() {
-  const rows = await fetchCSV(SHEETS.attendance)
-  if (rows.length < 2) return { total: 0, today: 0, daily: {} }
-  const today = getTodayMsia()
-  const daily = {}
-  let total = 0
-  for (let i = 1; i < rows.length; i++) {
-    const d = rows[i][1]
-    if (d) { daily[d] = (daily[d] || 0) + 1; total++ }
-  }
-  return { total, today: daily[today] || 0, daily }
-}
-
-function getTodayMsia() {
-  const now = new Date()
-  const msia = new Date(now.getTime() + 8 * 3600000)
-  return msia.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })
-}
-
 // ===== MODAL =====
 function openModal(title, bodyHTML) {
   const overlay = document.getElementById('modalOverlay')
@@ -132,19 +111,35 @@ function closeModal() {
   document.body.style.overflow = ''
 }
 
-// ===== WHATSAPP =====
-async function setupWhatsApp() {
-  const btn = document.getElementById('whatsappBtn')
-  if (!btn) return
-  try {
-    const info = await getEventInfo()
-    const contact = info['Contact'] || 'Pihak KKR'
-    const raw = info['Whatsapp Number'] || ''
-    const phone = raw.replace(/[^0-9]/g, '')
-    if (phone) {
-      btn.href = `https://wa.me/${phone}?text=Hai%20${encodeURIComponent(contact)}%2C%20saya%20ada%20soalan%20berkaitan%20KKR.`
+// ===== CONTACT FAB =====
+function toggleContactMenu() {
+  const fab = document.getElementById('contactFab')
+  fab.classList.toggle('open')
+}
+
+document.addEventListener('click', function closeFab(e) {
+  const fab = document.getElementById('contactFab')
+  if (fab && !fab.contains(e.target) && fab.classList.contains('open')) {
+    fab.classList.remove('open')
+  }
+})
+
+function setupContactFab() {
+  getEventInfo().then(info => {
+    const waBtn = document.getElementById('waOption')
+    const formBtn = document.getElementById('formOption')
+    if (waBtn) {
+      const contact = info['Contact'] || 'Pihak KKR'
+      const raw = info['Whatsapp Number'] || ''
+      const phone = raw.replace(/[^0-9]/g, '')
+      if (phone) {
+        waBtn.href = `https://wa.me/${phone}?text=Hai%20${encodeURIComponent(contact)}%2C%20saya%20ada%20soalan%20berkaitan%20KKR.`
+      }
     }
-  } catch (e) {}
+    if (formBtn && info['Google Form Link']) {
+      formBtn.href = info['Google Form Link']
+    }
+  }).catch(() => {})
 }
 
 // ===== SPEAKER MODAL =====
@@ -190,12 +185,6 @@ async function loadEventInfo() {
       container.appendChild(div)
     }
 
-    const statsDiv = document.createElement('div')
-    statsDiv.id = 'statsBar'
-    statsDiv.className = 'stats-bar'
-    container.appendChild(statsDiv)
-    renderStats()
-
     const spk = document.createElement('div')
     spk.className = 'card card-clickable'
     spk.style.cursor = 'pointer'
@@ -237,29 +226,6 @@ async function loadEventInfo() {
   }
 }
 
-async function renderStats() {
-  const bar = document.getElementById('statsBar')
-  if (!bar) return
-  try {
-    const stats = await getAttendanceStats()
-    const dates = Object.entries(stats.daily).sort((a, b) => new Date(a[0]) - new Date(b[0]))
-    bar.innerHTML = `
-      <div class="stat-card"><div class="stat-number">${stats.today}</div><div class="stat-label">Hari Ini</div></div>
-      <div class="stat-card"><div class="stat-number gold">${stats.total}</div><div class="stat-label">Jumlah</div></div>
-    `
-
-    let dailyHTML = ''
-    if (dates.length) {
-      dailyHTML = '<div class="daily-list">' + dates.map(([d, c]) =>
-        `<div class="daily-item"><span class="daily-date">${d}</span><span class="daily-num">${c} orang</span></div>`
-      ).join('') + '</div>'
-    }
-
-    const existingDaily = document.getElementById('dailyBreakdown')
-    if (existingDaily) existingDaily.innerHTML = dailyHTML || '<div class="empty-state">Belum ada data kehadiran.</div>'
-  } catch (e) {}
-}
-
 // ===== PROGRAM PAGE (Tabbed) =====
 let programData = null
 
@@ -271,7 +237,6 @@ async function loadProgram() {
     programData = await getProgram()
     if (!programData.days.length) { container.innerHTML = '<div class="empty-state">Tiada data program.</div>'; return }
 
-    // Build tabs
     let tabsHTML = '<div class="program-dates" id="programTabs">'
     const rawDates = programData.days
 
@@ -289,7 +254,6 @@ async function loadProgram() {
     tabsHTML += '</div><div id="programDayContent"></div>'
     container.innerHTML = tabsHTML
 
-    // Auto-select day
     let defaultDay = 0
     try {
       const now = new Date()
@@ -341,7 +305,6 @@ function selectProgramDay(index) {
   html += '</div>'
   content.innerHTML = html
 
-  // Scroll active tab into view
   tabs.forEach(t => {
     if (t.classList.contains('active')) {
       t.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' })
@@ -518,77 +481,6 @@ function formatTime(seconds) {
   return `${m}:${s < 10 ? '0' : ''}${s}`
 }
 
-// ===== ATTENDANCE =====
-function initAttendancePage() {
-  const form = document.getElementById('attendanceForm')
-  const nameInput = document.getElementById('nameInput')
-  const phoneInput = document.getElementById('phoneInput')
-  const submitBtn = document.getElementById('submitBtn')
-  const formSection = document.getElementById('formSection')
-  const statusSection = document.getElementById('statusSection')
-  if (!form) return
-
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault()
-    const name = nameInput.value.trim()
-    const phone = phoneInput.value.trim()
-    if (!name || !phone) return
-
-    submitBtn.disabled = true
-    submitBtn.innerHTML = '<div style="width:20px;height:20px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto"></div>'
-
-    const today = getTodayMsia()
-    let isDuplicate = false
-
-    try {
-      const rows = await fetchCSV(SHEETS.attendance)
-      isDuplicate = rows.slice(1).some(r => {
-        const rowDate = r[1] || ''
-        const rowPhone = (r[3] || '').trim()
-        return rowDate === today && rowPhone === phone.trim()
-      })
-    } catch (e) {}
-
-    if (!isDuplicate) {
-      try {
-        await fetch(APPS_SCRIPT_URL, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'text/plain' },
-          body: JSON.stringify({ name, phone }),
-        })
-      } catch (e) {}
-    }
-
-    formSection.style.display = 'none'
-    statusSection.style.display = 'block'
-
-    if (isDuplicate) {
-      statusSection.innerHTML = `
-        <div class="status-box">
-          <div class="status-icon duplicate">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 9v2m0 4h.01"/></svg>
-          </div>
-          <h2>Anda Sudah Check In</h2>
-          <p class="status-msg" style="color:#fcd34d">Anda sudah check in hari ini</p>
-          <p class="status-sub">Mengalihkan ke Laman Utama...</p>
-        </div>`
-    } else {
-      statusSection.innerHTML = `
-        <div class="status-box">
-          <div class="status-icon success">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>
-          </div>
-          <h2>Check In Berjaya!</h2>
-          <p class="status-msg">Selamat datang ke KKR</p>
-          <p class="status-sub">Mengalihkan ke Laman Utama...</p>
-        </div>`
-    }
-
-    setTimeout(() => { window.location.href = 'home.html' }, 2500)
-  })
-}
-
 // ===== SPLASH =====
 function initSplash() {
   const eventEl = document.getElementById('splashEventName')
@@ -601,7 +493,7 @@ function initSplash() {
   setTimeout(() => {
     document.querySelector('.splash').style.transition = 'opacity 0.5s'
     document.querySelector('.splash').style.opacity = '0'
-    setTimeout(() => { window.location.href = 'attendance.html' }, 500)
+    setTimeout(() => { window.location.href = 'home.html' }, 500)
   }, 3500)
 }
 
@@ -611,12 +503,11 @@ document.addEventListener('DOMContentLoaded', () => {
   if (overlay) overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal() })
 
   if (document.getElementById('splashPage')) initSplash()
-  if (document.getElementById('attendancePage')) initAttendancePage()
-  if (document.getElementById('homePage')) { loadEventInfo(); setInterval(renderStats, 30000); loadBadge() }
+  if (document.getElementById('homePage')) { loadEventInfo(); loadBadge() }
   if (document.getElementById('programPage')) { loadProgram(); loadBadge() }
   if (document.getElementById('petugasPage')) { loadPetugas(); loadBadge() }
   if (document.getElementById('galleryPage')) { loadGallery(); loadBadge() }
   if (document.getElementById('announcePage')) loadAnnouncements()
 
-  setupWhatsApp()
+  setupContactFab()
 })

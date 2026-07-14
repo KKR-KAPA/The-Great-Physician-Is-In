@@ -182,52 +182,6 @@ body {
 .home-hero .hero-info-icon { font-size: 15px; }
 .home-hero .hero-info-text { font-weight: 500; }
 
-/* ========== STATS BAR ========== */
-.stats-bar {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 16px;
-}
-.stat-card {
-  flex: 1;
-  background: var(--surface);
-  border-radius: 14px;
-  padding: 16px 12px;
-  text-align: center;
-  box-shadow: var(--shadow);
-  border: 1px solid var(--border);
-}
-.stat-number {
-  font-size: 30px;
-  font-weight: 800;
-  letter-spacing: -1px;
-  line-height: 1;
-  color: var(--primary);
-}
-.stat-number.gold { color: var(--gold); }
-.stat-label {
-  font-size: 10px;
-  color: var(--gray);
-  margin-top: 4px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
-}
-
-/* ========== DAILY COUNT ========== */
-.daily-list { margin-top: 8px; }
-.daily-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--border);
-  font-size: 14px;
-}
-.daily-item:last-child { border: none; }
-.daily-item .daily-date { color: var(--gray); }
-.daily-item .daily-num { font-weight: 700; color: var(--primary); }
-
 /* ========== HOME INFO ========== */
 .info-item {
   display: flex;
@@ -332,34 +286,6 @@ body {
 
 .btn-block { width: 100%; }
 
-/* ========== FORM (ATTENDANCE) ========== */
-.form-group { margin-bottom: 16px; }
-.form-group label {
-  display: block;
-  font-size: 13px;
-  color: rgba(255,255,255,0.7);
-  margin-bottom: 6px;
-  font-weight: 500;
-}
-.form-input {
-  width: 100%;
-  padding: 14px 16px;
-  border-radius: 12px;
-  border: 1px solid rgba(255,255,255,0.15);
-  font-size: 16px;
-  background: rgba(255,255,255,0.08);
-  color: white;
-  backdrop-filter: blur(4px);
-  transition: border-color 0.2s;
-  outline: none;
-  -webkit-appearance: none;
-}
-.form-input:focus {
-  border-color: var(--gold);
-  box-shadow: 0 0 0 3px rgba(200,162,78,0.12);
-}
-.form-input::placeholder { color: rgba(255,255,255,0.35); }
-
 /* ========== BOTTOM NAV ========== */
 .bottom-nav {
   position: fixed;
@@ -422,43 +348,82 @@ body {
 .nav-item.active svg { stroke-width: 2.5; }
 .nav-item:hover { color: var(--primary); }
 
-/* ========== WHATSAPP FLOAT ========== */
-.whatsapp-float {
+/* ========== CONTACT FAB ========== */
+.contact-fab {
   position: fixed;
   bottom: 80px;
   right: 16px;
-  background: #25D366;
-  color: white;
+  z-index: 99;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+}
+.fab-main {
   width: 54px;
   height: 54px;
   border-radius: 50%;
+  border: none;
+  background: var(--primary);
+  color: white;
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 20px rgba(37,211,102,0.35);
-  z-index: 99;
-  text-decoration: none;
+  box-shadow: 0 4px 20px rgba(44,19,56,0.35);
   transition: all 0.2s;
-  -webkit-tap-highlight-color: transparent;
-  animation: waPulse 2.5s ease-in-out infinite;
+  position: relative;
+  z-index: 2;
 }
-.whatsapp-float:hover {
-  transform: scale(1.1);
-  box-shadow: 0 8px 32px rgba(37,211,102,0.5);
-  animation: none;
+.fab-main:hover { transform: scale(1.1); box-shadow: 0 8px 32px rgba(44,19,56,0.45); }
+.fab-main:active { transform: scale(0.95); }
+.fab-main svg { width: 24px; height: 24px; }
+.fab-main .fab-close-icon { display: none; }
+.contact-fab.open .fab-main .fab-icon { display: none; }
+.contact-fab.open .fab-main .fab-close-icon { display: block; }
+.contact-fab.open .fab-main { background: #ef4444; box-shadow: 0 4px 20px rgba(239,68,68,0.35); }
+.fab-options {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+  opacity: 0;
+  transform: translateY(10px) scale(0.8);
+  pointer-events: none;
+  transition: all 0.25s ease-out;
+  position: absolute;
+  bottom: 64px;
+  right: 0;
 }
-.whatsapp-float svg { width: 28px; height: 28px; fill: white; }
-
-@keyframes waPulse {
-  0%, 100% {
-    box-shadow: 0 4px 20px rgba(37,211,102,0.3), 0 0 0 0 rgba(37,211,102,0.2);
-  }
-  50% {
-    box-shadow: 0 4px 28px rgba(37,211,102,0.45), 0 0 0 14px rgba(37,211,102,0);
-  }
+.contact-fab.open .fab-options {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
 }
+.fab-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px 10px 14px;
+  border-radius: 12px;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 600;
+  color: white;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.fab-option:hover { transform: translateX(-4px); }
+.fab-option:active { transform: scale(0.96); }
+.fab-option svg { width: 20px; height: 20px; flex-shrink: 0; }
+.fab-wa { background: #25D366; }
+.fab-wa svg { fill: white; }
+.fab-form { background: var(--primary); }
+.fab-form svg { stroke: white; }
 
 /* ========== SPLASH ========== */
+
 .splash {
   min-height: 100vh;
   display: flex;
@@ -602,36 +567,6 @@ body {
 }
 .modal-close:hover { background: #ddd6e0; }
 .modal-body { padding: 20px; }
-
-/* ========== ATTENDANCE STATUS ========== */
-.status-box { text-align: center; animation: fadeInUp 0.8s ease-out; }
-.status-icon {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 20px;
-}
-.status-icon.success { background: var(--sage); }
-.status-icon.duplicate { background: #eab308; }
-.status-icon.error { background: #ef4444; }
-.status-icon svg { width: 40px; height: 40px; color: white; }
-.status-box h2 {
-  font-size: 22px;
-  margin-bottom: 6px;
-  color: white;
-  font-weight: 800;
-  letter-spacing: -0.3px;
-}
-.status-box .status-msg { color: var(--gold); font-size: 15px; }
-.status-box .status-sub {
-  color: rgba(255,255,255,0.35);
-  font-size: 13px;
-  margin-top: 24px;
-  animation: fadeInOut 2s infinite;
-}
 
 /* ========== PROGRAM TABBED ========== */
 .program-dates {
@@ -928,8 +863,6 @@ body {
 /* ========== ANIMATIONS ========== */
 .page-content { animation: fadeInUp 0.4s ease-out; }
 
-.status-icon { animation: bounceIn 0.5s ease-out; }
-.status-box { animation: fadeInUp 0.6s ease-out; }
 
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(20px); }
