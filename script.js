@@ -203,6 +203,8 @@ function closeModal() {
   if (!overlay) return
   overlay.classList.remove('open')
   document.body.style.overflow = ''
+  const header = document.querySelector('.modal-header')
+  if (header) header.style.display = ''
 }
 
 // ===== CONTACT FAB =====
@@ -241,16 +243,30 @@ let speakerInfo = null
 
 function openSpeakerModal() {
   if (!speakerInfo) return
-  openModal('Latar Belakang Pembicara', `
-    <div style="text-align:center;margin-bottom:20px">
-      <img src="PrKim.jpeg" alt="${speakerInfo.name}" style="width:100px;height:100px;border-radius:50%;object-fit:cover;border:3px solid var(--gold)" onerror="this.style.display='none'">
-      <h3 style="margin-top:12px;font-size:17px;font-weight:700;color:var(--primary)">${speakerInfo.name}</h3>
-      <p style="color:var(--gold);font-size:13px;font-weight:600">Pembicara</p>
+
+  const overlay = document.getElementById('modalOverlay')
+  const header = document.querySelector('.modal-header')
+  const body = document.getElementById('modalBody')
+
+  if (header) header.style.display = 'none'
+
+  body.innerHTML = `
+    <div class="speaker-modal-body">
+      <img src="PrKim.jpeg" alt="${speakerInfo.name}" class="speaker-modal-img" onerror="this.style.display='none'">
+      <div class="speaker-modal-gradient"></div>
+      <div class="speaker-modal-info">
+        <h3 class="speaker-modal-name">${speakerInfo.name}</h3>
+        <p class="speaker-modal-role">Pembicara</p>
+        <p class="speaker-modal-bio">${speakerInfo.bio || 'Maklumat latar belakang akan dikemaskini.'}</p>
+      </div>
+      <button class="speaker-modal-close" onclick="closeModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
     </div>
-    <div style="font-size:14px;color:var(--gray);line-height:1.8">
-      ${speakerInfo.bio || 'Maklumat latar belakang akan dikemaskini.'}
-    </div>
-  `)
+  `
+
+  overlay.classList.add('open')
+  document.body.style.overflow = 'hidden'
 }
 
 // ===== HOME PAGE =====
