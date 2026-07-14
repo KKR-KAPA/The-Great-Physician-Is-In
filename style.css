@@ -99,6 +99,8 @@ body {
   line-height: 1.3;
   color: var(--primary);
 }
+.download-card { transition: all 0.2s; cursor: pointer; }
+.download-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-2px); border-color: var(--gold); }
 
 /* ========== BANNER ========== */
 .banner-wrap {
