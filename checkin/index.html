@@ -34,37 +34,20 @@
       <p style="color:var(--gold);font-size:13px;text-align:center;margin-bottom:32px">Sila isi maklumat anda untuk check in</p>
 
       <form id="attendanceForm">
-        <p id="welcomeMsg" style="display:none;color:var(--gold);font-size:13px;text-align:center;margin-bottom:16px"></p>
         <div class="form-group">
           <label>Nama Penuh</label>
           <input id="nameInput" type="text" class="form-input" placeholder="Masukkan nama anda" required>
         </div>
         <div class="form-group">
-          <label>Gereja Asal</label>
-          <select id="churchSelect" class="form-input" required>
-            <option value="">Pilih gereja...</option>
-            <option>Gereja Kapa</option>
-            <option>Gereja Koporingan</option>
-            <option>Gereja Kitapol</option>
-            <option>Gereja Minangkob</option>
-            <option>Gereja Togop</option>
-            <option>Cabang Sekolah Sabat Daerah Kapa</option>
-            <option>Lain-Lain</option>
-          </select>
+          <label>No. Telefon</label>
+          <input id="phoneInput" type="tel" class="form-input" placeholder="Cth: 60123456789" required>
         </div>
         <button id="submitBtn" type="submit" class="btn btn-gold btn-block" style="margin-top:8px">Check In</button>
-        <a id="resetProfile" href="#" style="display:none;color:rgba(255,255,255,0.4);font-size:11px;text-align:center;margin-top:12px;text-decoration:none" onclick="clearProfile()">Bukan anda? Klik di sini</a>
       </form>
     </div>
 
     <div id="statusSection" style="display:none;width:100%;max-width:400px"></div>
   </div>
-
-  <iframe name="checkinFrame" style="display:none"></iframe>
-  <form id="checkinForm" action="https://script.google.com/macros/s/AKfycbzIqTb_aMQWQtH-_uzttgc_DZg5shogZ6A6sVf5mrutiZ8P5hBkOql8uzhZftQpgloU/exec" method="POST" target="checkinFrame" style="display:none">
-    <input type="hidden" name="name" id="hiddenName">
-    <input type="hidden" name="church" id="hiddenChurch">
-  </form>
 
   <script>
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzIqTb_aMQWQtH-_uzttgc_DZg5shogZ6A6sVf5mrutiZ8P5hBkOql8uzhZftQpgloU/exec'
@@ -97,87 +80,69 @@ function parseCSV(text) {
 
 const today = getTodayMsia()
 const LS_KEY = `checkin_${today}`
-const USER_KEY = 'checkin_user'
 
-function checkLocalDuplicate(key) {
+function checkLocalDuplicate(phone) {
   const stored = localStorage.getItem(LS_KEY)
   if (!stored) return false
   try {
     const list = JSON.parse(stored)
-    return Array.isArray(list) && list.includes(key)
+    return Array.isArray(list) && list.includes(phone.trim())
   } catch { return false }
 }
 
-function saveLocalCheckin(key) {
+function saveLocalCheckin(phone) {
   const stored = localStorage.getItem(LS_KEY)
   let list = []
   try { list = JSON.parse(stored) || [] } catch { list = [] }
   if (!Array.isArray(list)) list = []
-  if (!list.includes(key)) list.push(key)
+  if (!list.includes(phone.trim())) list.push(phone.trim())
   localStorage.setItem(LS_KEY, JSON.stringify(list))
 }
-
-function clearProfile() {
-  localStorage.removeItem(USER_KEY)
-  location.reload()
-}
-
-// Auto-fill from saved profile
-;(function() {
-  try {
-    const saved = JSON.parse(localStorage.getItem(USER_KEY))
-    if (saved && saved.name) {
-      document.getElementById('nameInput').value = saved.name
-      if (saved.church) document.getElementById('churchSelect').value = saved.church
-      const msg = document.getElementById('welcomeMsg')
-      msg.style.display = 'block'
-      msg.textContent = 'Selamat datang kembali, ' + saved.name + '!'
-      document.getElementById('resetProfile').style.display = 'block'
-    }
-  } catch (e) {}
-})()
 
 document.getElementById('attendanceForm').addEventListener('submit', async function(e) {
   e.preventDefault()
   const name = document.getElementById('nameInput').value.trim()
-  const church = document.getElementById('churchSelect').value
-  if (!name || !church) return
+  const phone = document.getElementById('phoneInput').value.trim()
+  if (!name || !phone) return
 
-  const dupKey = (name + '|' + church).toLowerCase()
-  if (checkLocalDuplicate(dupKey)) {
+  if (checkLocalDuplicate(phone)) {
     showStatus(true)
     return
   }
 
   const btn = document.getElementById('submitBtn')
   btn.disabled = true
-  btn.textContent = 'Memproses...'
+  btn.innerHTML = '<div style="width:20px;height:20px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto"></div>'
 
   let isDuplicate = false
+
   try {
     const res = await fetch(ATTENDANCE_SHEET, { cache: 'no-store' })
     const rows = parseCSV(await res.text())
     isDuplicate = rows.slice(1).some(r => {
-      const rowDay = (r[1] || '').trim()
-      const rowName = (r[2] || '').trim().toLowerCase()
-      const rowChurch = (r[3] || '').trim().toLowerCase()
-      return rowDay === today && rowName === name.toLowerCase() && rowChurch === church.toLowerCase()
+      const rowDate = r[1] || ''
+      const rowPhone = (r[3] || '').trim()
+      return rowDate === today && rowPhone === phone.trim()
     })
   } catch (e) {
-    if (checkLocalDuplicate(dupKey)) {
+    if (checkLocalDuplicate(phone)) {
       showStatus(true)
       return
     }
   }
 
   if (!isDuplicate) {
-    localStorage.setItem(USER_KEY, JSON.stringify({ name, church }))
-    document.getElementById('hiddenName').value = name
-    document.getElementById('hiddenChurch').value = church
-    document.getElementById('checkinForm').submit()
+    try {
+      await fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({ name, phone }),
+      })
+    } catch (e) {}
   }
 
-  saveLocalCheckin(dupKey)
+  saveLocalCheckin(phone)
   showStatus(isDuplicate)
 })
 
