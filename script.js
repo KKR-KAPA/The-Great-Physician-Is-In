@@ -126,18 +126,27 @@ async function getAttendanceStats() {
 async function renderStats() {
   const container = document.getElementById('statsContainer')
   if (!container) return
+
+  const now = new Date()
+  const msia = new Date(now.getTime() + 8 * 3600000)
+  const msiaDate = new Date(Date.UTC(msia.getFullYear(), msia.getMonth(), msia.getDate()))
+  const start = new Date(Date.UTC(2026, 6, 20))
+  const end = new Date(Date.UTC(2026, 6, 26))
+
+  if (msiaDate < start) {
+    container.innerHTML = '<div class="stat-card" style="width:100%;text-align:center"><span class="stat-number" style="font-size:16px">⏳</span><span class="stat-label">KKR akan bermula pada 20 Julai 2026</span></div>'
+    return
+  }
+
   const stats = await getAttendanceStats()
   if (!stats) return
-  container.innerHTML = `
-    <div class="stat-card">
-      <span class="stat-number">${stats.today}</span>
-      <span class="stat-label">Kehadiran Hari Ini</span>
-    </div>
-    <div class="stat-card">
-      <span class="stat-number">${stats.total}</span>
-      <span class="stat-label">Jumlah Keseluruhan</span>
-    </div>
-  `
+
+  if (msiaDate > end) {
+    container.innerHTML = '<div class="stat-card" style="width:100%"><span class="stat-number">${stats.total}</span><span class="stat-label">Jumlah Kehadiran Keseluruhan</span></div>'
+    return
+  }
+
+  container.innerHTML = '<div class="stat-card" style="width:100%"><span class="stat-number">${stats.today}</span><span class="stat-label">Kehadiran Hari Ini</span></div>'
 }
 
 async function renderAttendanceGraph() {
@@ -275,14 +284,23 @@ async function loadEventInfo() {
     spk.style.cursor = 'pointer'
     spk.onclick = openSpeakerModal
     spk.innerHTML = `
-      <h2 style="font-size:20px;margin-bottom:20px">🎤 Pembicara</h2>
+      <h2 style="font-size:20px;margin-bottom:20px">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" style="vertical-align:middle;margin-right:8px">
+          <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/>
+          <path d="M19 10v2a7 7 0 01-14 0v-2"/>
+          <line x1="12" y1="19" x2="12" y2="23"/>
+          <line x1="8" y1="23" x2="16" y2="23"/>
+        </svg>
+        Pembicara
+      </h2>
       <div class="speaker-card">
         <img src="PrKim.jpeg" alt="Speaker" class="speaker-img" onerror="this.src='data:image/svg+xml,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'64\\' height=\\'64\\'><rect fill=\\'%23c8a24e\\' width=\\'64\\' height=\\'64\\' rx=\\'32\\'/><text x=\\'32\\' y=\\'38\\' text-anchor=\\'middle\\' fill=\\'white\\' font-size=\\'12\\' font-family=\\'sans-serif\\'>Pr</text></svg>'">
         <div class="speaker-info" style="flex:1">
           <div class="speaker-name">${info['Main Speaker'] || '-'}</div>
           <div class="speaker-role">Pembicara</div>
+          <div class="speaker-hint">Klik untuk info lanjut</div>
         </div>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
       </div>`
     container.appendChild(spk)
 
@@ -413,7 +431,6 @@ async function loadPetugas() {
         <div>
           <div class="day-label">${DAY_LABELS[i] || ''}</div>
           <div class="day-date">${d}</div>
-          <div class="role-count">${data.roles.length} peranan</div>
         </div>
         <div class="arrow">›</div>
       </div>`
