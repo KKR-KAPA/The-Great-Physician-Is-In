@@ -34,6 +34,7 @@
       <p style="color:var(--gold);font-size:13px;text-align:center;margin-bottom:32px">Sila isi maklumat anda untuk check in</p>
 
       <form id="attendanceForm">
+        <p id="welcomeMsg" style="display:none;color:var(--gold);font-size:13px;text-align:center;margin-bottom:16px"></p>
         <div class="form-group">
           <label>Nama Penuh</label>
           <input id="nameInput" type="text" class="form-input" placeholder="Masukkan nama anda" required>
@@ -52,11 +53,18 @@
           </select>
         </div>
         <button id="submitBtn" type="submit" class="btn btn-gold btn-block" style="margin-top:8px">Check In</button>
+        <a id="resetProfile" href="#" style="display:none;color:rgba(255,255,255,0.4);font-size:11px;text-align:center;margin-top:12px;text-decoration:none" onclick="clearProfile()">Bukan anda? Klik di sini</a>
       </form>
     </div>
 
     <div id="statusSection" style="display:none;width:100%;max-width:400px"></div>
   </div>
+
+  <iframe name="checkinFrame" style="display:none"></iframe>
+  <form id="checkinForm" action="https://script.google.com/macros/s/AKfycbzIqTb_aMQWQtH-_uzttgc_DZg5shogZ6A6sVf5mrutiZ8P5hBkOql8uzhZftQpgloU/exec" method="POST" target="checkinFrame" style="display:none">
+    <input type="hidden" name="name" id="hiddenName">
+    <input type="hidden" name="church" id="hiddenChurch">
+  </form>
 
   <script>
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzIqTb_aMQWQtH-_uzttgc_DZg5shogZ6A6sVf5mrutiZ8P5hBkOql8uzhZftQpgloU/exec'
@@ -89,6 +97,7 @@ function parseCSV(text) {
 
 const today = getTodayMsia()
 const LS_KEY = `checkin_${today}`
+const USER_KEY = 'checkin_user'
 
 function checkLocalDuplicate(key) {
   const stored = localStorage.getItem(LS_KEY)
@@ -108,13 +117,33 @@ function saveLocalCheckin(key) {
   localStorage.setItem(LS_KEY, JSON.stringify(list))
 }
 
+function clearProfile() {
+  localStorage.removeItem(USER_KEY)
+  location.reload()
+}
+
+// Auto-fill from saved profile
+;(function() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(USER_KEY))
+    if (saved && saved.name) {
+      document.getElementById('nameInput').value = saved.name
+      if (saved.church) document.getElementById('churchSelect').value = saved.church
+      const msg = document.getElementById('welcomeMsg')
+      msg.style.display = 'block'
+      msg.textContent = 'Selamat datang kembali, ' + saved.name + '!'
+      document.getElementById('resetProfile').style.display = 'block'
+    }
+  } catch (e) {}
+})()
+
 document.getElementById('attendanceForm').addEventListener('submit', async function(e) {
   e.preventDefault()
   const name = document.getElementById('nameInput').value.trim()
   const church = document.getElementById('churchSelect').value
   if (!name || !church) return
 
-  const dupKey = name + '|' + church
+  const dupKey = (name + '|' + church).toLowerCase()
   if (checkLocalDuplicate(dupKey)) {
     showStatus(true)
     return
@@ -122,10 +151,9 @@ document.getElementById('attendanceForm').addEventListener('submit', async funct
 
   const btn = document.getElementById('submitBtn')
   btn.disabled = true
-  btn.innerHTML = '<div style="width:20px;height:20px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto"></div>'
+  btn.textContent = 'Memproses...'
 
   let isDuplicate = false
-
   try {
     const res = await fetch(ATTENDANCE_SHEET, { cache: 'no-store' })
     const rows = parseCSV(await res.text())
@@ -143,14 +171,10 @@ document.getElementById('attendanceForm').addEventListener('submit', async funct
   }
 
   if (!isDuplicate) {
-    try {
-      await fetch(APPS_SCRIPT_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'text/plain' },
-        body: JSON.stringify({ name, church }),
-      })
-    } catch (e) {}
+    localStorage.setItem(USER_KEY, JSON.stringify({ name, church }))
+    document.getElementById('hiddenName').value = name
+    document.getElementById('hiddenChurch').value = church
+    document.getElementById('checkinForm').submit()
   }
 
   saveLocalCheckin(dupKey)
