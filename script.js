@@ -439,6 +439,10 @@ async function loadProgram() {
         <span class="pdt-date">${displayShort}</span>
       </button>`
     })
+    tabsHTML += `<button class="program-date-tab" data-index="${rawDates.length}" onclick="selectProgramDay(${rawDates.length})">
+      <span class="pdt-label">Sabat</span>
+      <span class="pdt-date">25 Jul</span>
+    </button>`
     tabsHTML += '</div><div id="programDayContent"></div>'
     container.innerHTML = tabsHTML
 
@@ -446,9 +450,9 @@ async function loadProgram() {
     try {
       const now = new Date()
       const eventStart = new Date(2026, 6, 20)
-      if (now >= eventStart && now < new Date(2026, 6, 25)) {
+      if (now >= eventStart) {
         const diff = Math.floor((now - eventStart) / 86400000)
-        defaultDay = Math.min(diff, rawDates.length - 1)
+        defaultDay = Math.min(diff, rawDates.length)
       }
     } catch (e) {}
     selectProgramDay(defaultDay)
@@ -457,12 +461,76 @@ async function loadProgram() {
   }
 }
 
+const SABAT_SCHEDULE = {
+  pagi: [
+    { time: '7.30 pagi', desc: 'Ketibaan Jemaat' },
+    { time: '8.00 – 8.45 pagi', desc: 'Ucapan Alu-aluan', sub: ['Lagu Pujian dan Penyembahan', 'Tayangan Montaj', 'Laporan Misi Sedunia', 'Sorotan Pelajaran Sekolah Sabat'] },
+    { time: '8.45 – 9.45 pagi', desc: 'Konsert Mini oleh Pastori Choir (Korea)' },
+    { time: '9.45 – 10.00 pagi', desc: 'Persembahan Persepuluhan dan Persembahan' },
+    { time: '10.00 – 10.15 pagi', desc: 'Ikrar Pembaptisan' },
+    { time: '10.15 – 11.15 pagi', desc: 'Khotbah' },
+    { time: '11.15 – 12.15 tengah hari', desc: 'Upacara Pembaptisan' },
+    { time: '12.30 tengah hari', desc: 'Jamuan Kasih (Fellowship Lunch)' },
+  ],
+  petang: [
+    { time: '2.00 petang', desc: 'Program Penutupan', sub: ['Lagu Pujian oleh koir-koir tempatan (akan disahkan kemudian)'] },
+    { time: '2.30 petang', desc: 'Ucapan Penghargaan dan Tanda Terima Kasih (Sesi Bergambar)' },
+    { time: '3.30 petang', desc: 'Doa Berkat (Benediction)' },
+  ],
+}
+
+function renderSabatProgram() {
+  let html = `<div class="program-day-card">
+    <div class="program-day-header">
+      <div class="day-name">Sabat</div>
+      <div class="day-date">25 Julai 2026</div>
+      <div style="font-size:12px;color:var(--gold);font-weight:500;margin-top:4px">Auditorium Adventist, Tamparuli</div>
+    </div>`
+
+  const renderSlots = (sesi, title) => {
+    html += `<div class="sabat-sesi" style="padding:16px 18px 0">
+      <h4 class="sabat-sesi-title" style="margin-bottom:12px">${title}</h4>`
+    sesi.forEach(s => {
+      html += `<div class="program-slot">
+        <div class="slot-left">
+          <div class="slot-role">${s.desc}</div>
+          <div class="slot-time">${s.time}</div>
+        </div>
+      </div>`
+      if (s.sub) {
+        s.sub.forEach(line => {
+          html += `<div style="font-size:12px;color:rgba(128,108,140,0.7);padding:2px 0 2px 42%">${line}</div>`
+        })
+      }
+    })
+    html += `</div>`
+  }
+
+  renderSlots(SABAT_SCHEDULE.pagi, 'Sesi Pagi')
+  renderSlots(SABAT_SCHEDULE.petang, 'Sesi Petang')
+
+  html += '</div>'
+  return html
+}
+
 function selectProgramDay(index) {
   const tabs = document.querySelectorAll('.program-date-tab')
   tabs.forEach((t, i) => t.classList.toggle('active', i === index))
 
   const content = document.getElementById('programDayContent')
   if (!content || !programData) return
+
+  const sabatIndex = programData.days.length
+
+  if (index === sabatIndex) {
+    content.innerHTML = renderSabatProgram()
+    tabs.forEach(t => {
+      if (t.classList.contains('active')) {
+        t.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' })
+      }
+    })
+    return
+  }
 
   const day = programData.days[index]
   const parts = day.split(' ')
