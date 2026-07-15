@@ -269,6 +269,57 @@ function openSpeakerModal() {
   document.body.style.overflow = 'hidden'
 }
 
+function openSabatModal() {
+  const overlay = document.getElementById('modalOverlay')
+  const header = document.querySelector('.modal-header')
+  const body = document.getElementById('modalBody')
+
+  if (header) header.style.display = 'none'
+
+  body.innerHTML = `
+    <div class="speaker-modal-body">
+      <div class="sabat-hero">
+        <div style="width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,var(--gold),#a8852e);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-bottom:16px">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        </div>
+        <h3 style="font-size:20px;font-weight:800;color:white;margin:0 0 4px">Kebaktian Sabat Gabungan</h3>
+        <p style="color:var(--gold);font-size:13px;font-weight:600;margin:0 0 2px">25 Julai 2026</p>
+        <p style="color:rgba(255,255,255,0.6);font-size:12px;margin:0">Auditorium Adventist, Tamparuli</p>
+      </div>
+      <div class="sabat-gradient"></div>
+      <div class="sabat-content">
+        <div class="sabat-sesi">
+          <h4 class="sabat-sesi-title">Sesi Pagi</h4>
+          <table class="sabat-table">
+            <tr><td class="sabat-time">7.30 pagi</td><td class="sabat-desc">Ketibaan Jemaat</td></tr>
+            <tr><td class="sabat-time">8.00 – 8.45 pagi</td><td class="sabat-desc">Ucapan Alu-aluan<div class="sabat-sub">Lagu Pujian dan Penyembahan<br>Tayangan Montaj<br>Laporan Misi Sedunia<br>Sorotan Pelajaran Sekolah Sabat</div></td></tr>
+            <tr><td class="sabat-time">8.45 – 9.45 pagi</td><td class="sabat-desc">Konsert Mini oleh Pastori Choir (Korea)</td></tr>
+            <tr><td class="sabat-time">9.45 – 10.00 pagi</td><td class="sabat-desc">Persembahan Persepuluhan dan Persembahan</td></tr>
+            <tr><td class="sabat-time">10.00 – 10.15 pagi</td><td class="sabat-desc">Ikrar Pembaptisan</td></tr>
+            <tr><td class="sabat-time">10.15 – 11.15 pagi</td><td class="sabat-desc">Khotbah</td></tr>
+            <tr><td class="sabat-time">11.15 – 12.15 tengah hari</td><td class="sabat-desc">Upacara Pembaptisan</td></tr>
+            <tr><td class="sabat-time">12.30 tengah hari</td><td class="sabat-desc">Jamuan Kasih (Fellowship Lunch)</td></tr>
+          </table>
+        </div>
+        <div class="sabat-sesi">
+          <h4 class="sabat-sesi-title">Sesi Petang</h4>
+          <table class="sabat-table">
+            <tr><td class="sabat-time">2.00 petang</td><td class="sabat-desc">Program Penutupan<div class="sabat-sub">Lagu Pujian oleh koir-koir tempatan (akan disahkan kemudian)</div></td></tr>
+            <tr><td class="sabat-time">2.30 petang</td><td class="sabat-desc">Ucapan Penghargaan dan Tanda Terima Kasih (Sesi Bergambar)</td></tr>
+            <tr><td class="sabat-time">3.30 petang</td><td class="sabat-desc">Doa Berkat (Benediction)</td></tr>
+          </table>
+        </div>
+      </div>
+      <button class="speaker-modal-close" onclick="closeModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+  `
+
+  overlay.classList.add('open')
+  document.body.style.overflow = 'hidden'
+}
+
 // ===== HOME PAGE =====
 async function loadEventInfo() {
   const container = document.getElementById('eventInfoContainer')
@@ -341,6 +392,23 @@ async function loadEventInfo() {
       </a>`
       container.appendChild(ls)
     }
+
+    const sabatCard = document.createElement('div')
+    sabatCard.className = 'card card-clickable'
+    sabatCard.style.cursor = 'pointer'
+    sabatCard.onclick = openSabatModal
+    sabatCard.innerHTML = `
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--gold),#a8852e);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        </div>
+        <div style="flex:1">
+          <div style="font-weight:700;font-size:15px;color:var(--primary)">Kebaktian Sabat Gabungan</div>
+          <div style="font-size:12px;color:var(--gray);margin-top:2px">25 Julai 2026 · Auditorium Adventist, Tamparuli</div>
+        </div>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
+      </div>`
+    container.appendChild(sabatCard)
   } catch (e) {
     container.innerHTML = '<div class="card"><p style="color:#ef4444;font-size:13px">Gagal memuat maklumat.</p></div>'
   }
