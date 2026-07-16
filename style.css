@@ -970,27 +970,26 @@ body {
 .ajk-grid {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 2px;
 }
 .ajk-item {
   display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  padding: 12px 0;
+  gap: 16px;
+  padding: 10px 0;
   border-bottom: 1px solid var(--border);
 }
 .ajk-item:last-child { border: none; }
 .ajk-role {
+  flex: 0 0 42%;
   font-weight: 700;
-  font-size: 14px;
+  font-size: 13px;
   color: var(--primary);
-  flex: 0 0 auto;
-  margin-right: 12px;
+  line-height: 1.4;
 }
 .ajk-person {
+  flex: 1;
   font-size: 13px;
   color: var(--gray);
-  text-align: right;
   line-height: 1.4;
 }
 
