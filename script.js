@@ -760,12 +760,12 @@ const AJK_LIST = [
   { role: 'PENYELARAS KKR (FLOOR MANAGER)', person: 'ELDER JACKOL GIPIN' },
   { role: 'SETIAUSAHA', person: 'ELD. JACKOL GIPIN' },
   { role: 'BENDAHARI', person: 'PN. AGNES VIVY TOISIN' },
-  { role: 'AJK KESELAMATAN & PARKIR', person: 'G. KAPA' },
+  { role: 'AJK KESELAMATAN & PARKIR', person: 'GEREJA KAPA' },
   { role: 'AJK BAPTISAN', person: 'ELD. JOLIUS UMBARIS' },
   { role: 'AJK PROMOSI & MEDIA', person: 'ELD. WILFRED NYUK & EN. JOY BRANDON' },
   { role: 'AJK PENYEDIAAN CENDERAHATI', person: 'PN. AGNES VIVY TOISIN' },
   { role: 'AJK PENYEDIAAN MAKANAN & MINUMAN', person: 'PN. MERLYN VALDEZ & PW G. KAPA' },
-  { role: 'AJK KEBERSIHAN', person: 'G. KAPA' },
+  { role: 'AJK KEBERSIHAN', person: 'GEREJA KAPA' },
   { role: 'AJK PENYAMBUT TETAMU', person: 'DIAKONES GEREJA MASING-MASING (MENGIKUT JADUAL BERTUGAS)' },
   { role: 'AJK PA SYSTEM', person: 'ELD. WILFRED & EN. RAIZAL' },
   { role: 'AJK MUSIK', person: 'CIK CAMELIA WILFRED' },
@@ -775,7 +775,7 @@ const AJK_LIST = [
   { role: 'AJK PKK', person: 'CIK LADIANA FERDI' },
   { role: 'AJK URUSETIA', person: 'EN. ERLANDSON KEITH SUBIN' },
   { role: 'AJK KECEMASAN', person: 'ELD. HARIKADOE' },
-  { role: 'AJK PENGINAPAN', person: 'G. KAPA' },
+  { role: 'AJK PENGINAPAN', person: 'GEREJA KAPA' },
   { role: 'AJK PENGANGKUTAN', person: 'ELD. JUKILIN JAMINIK' },
 ]
 
@@ -783,8 +783,8 @@ function renderAJK() {
   let html = '<div class="card" style="margin-top:20px">'
   html += `<h2 style="font-size:20px;margin-bottom:16px">${t('ajkTitle')}</h2>`
   html += '<div class="ajk-grid">'
-  AJK_LIST.forEach(a => {
-    html += `<div class="ajk-item"><span class="ajk-role">${a.role}</span><span class="ajk-person">${a.person}</span></div>`
+  AJK_LIST.forEach((a, i) => {
+    html += `<div class="ajk-item"><div class="ajk-role">${i + 1}) ${a.role}</div><div class="ajk-person">: ${a.person}</div></div>`
   })
   html += '</div></div>'
   return html

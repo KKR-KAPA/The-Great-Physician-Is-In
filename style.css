@@ -970,27 +970,25 @@ body {
 .ajk-grid {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 0;
 }
 .ajk-item {
-  display: flex;
-  gap: 16px;
   padding: 10px 0;
   border-bottom: 1px solid var(--border);
 }
 .ajk-item:last-child { border: none; }
 .ajk-role {
-  flex: 0 0 42%;
   font-weight: 700;
-  font-size: 13px;
+  font-size: 14px;
   color: var(--primary);
   line-height: 1.4;
 }
 .ajk-person {
-  flex: 1;
   font-size: 13px;
   color: var(--gray);
+  padding-left: 24px;
   line-height: 1.4;
+  margin-top: 2px;
 }
 
 /* ========== ANNOUNCEMENTS ========== */
