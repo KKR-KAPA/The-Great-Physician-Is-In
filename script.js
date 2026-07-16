@@ -653,6 +653,16 @@ async function openAnnouncementsModal() {
 
   if (header) header.style.display = 'none'
 
+  let itemsHTML = ''
+  list.forEach((a, i) => {
+    itemsHTML += `
+      <div onclick="closeModal();setTimeout(()=>openAnnounceModal(${i}),300)" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:14px;cursor:pointer;transition:all 0.2s" onmouseenter="this.style.background='var(--light-gray)'" onmouseleave="this.style.background='transparent'">
+        <span style="flex-shrink:0;width:28px;height:28px;border-radius:10px;background:var(--gold);color:white;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700">${a.no}</span>
+        <span style="flex:1;font-size:14px;font-weight:600;color:var(--primary);line-height:1.3">${a.title}</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--gray)" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+      </div>`
+  })
+
   body.innerHTML = `
     <div class="speaker-modal-body">
       <div class="sabat-hero">
@@ -663,19 +673,7 @@ async function openAnnouncementsModal() {
         <p style="color:rgba(255,255,255,0.6);font-size:13px;margin-top:4px">${list.length} pengumuman</p>
       </div>
       <div style="padding:16px 20px 24px">
-        <div style="display:flex;flex-direction:column;gap:4px">`
-  
-  list.forEach((a, i) => {
-    body.innerHTML += `
-      <div onclick="closeModal();setTimeout(()=>openAnnounceModal(${i}),300)" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:14px;cursor:pointer;transition:all 0.2s" onmouseenter="this.style.background='var(--light-gray)'" onmouseleave="this.style.background='transparent'">
-        <span style="flex-shrink:0;width:28px;height:28px;border-radius:10px;background:var(--gold);color:white;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700">${a.no}</span>
-        <span style="flex:1;font-size:14px;font-weight:600;color:var(--primary);line-height:1.3">${a.title}</span>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--gray)" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
-      </div>`
-  })
-
-  body.innerHTML += `
-        </div>
+        <div style="display:flex;flex-direction:column;gap:4px">${itemsHTML}</div>
       </div>
       <button class="speaker-modal-close" onclick="closeModal()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
