@@ -617,18 +617,17 @@ async function loadAnnouncements() {
 
     window.__announceData = list
     updateAnnounceBadge(list.length)
-    let html = '<div class="announce-grid">'
+    let html = '<div class="card announce-floating">'
+    html += '<h2 style="margin-bottom:16px">📢 Pengumuman</h2>'
+    html += '<div class="announce-list">'
     list.forEach((a, i) => {
-      const preview = (a.content || '').replace(/\n/g, ' ').substring(0, 100)
-      html += `<div class="announce-card" onclick="openAnnounceModal(${i})">
-        <div class="announce-card-top">
-          <span class="announce-badge">${a.no}</span>
-          <div class="announce-title">${a.title}</div>
-        </div>
-        <div class="announce-preview">${preview}${(a.content || '').length > 100 ? '...' : ''}</div>
+      html += `<div class="announce-list-item" onclick="openAnnounceModal(${i})">
+        <span class="announce-badge">${a.no}</span>
+        <span class="announce-list-title">${a.title}</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--gray)" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
       </div>`
     })
-    html += '</div>'
+    html += '</div></div>'
     container.innerHTML = html
   } catch (e) {
     container.innerHTML = '<div class="card"><p style="color:#ef4444;font-size:13px">Gagal memuat pengumuman.</p></div>'
@@ -771,13 +770,38 @@ function initSplash() {
   }, 3500)
 }
 
+// ===== COUNTDOWN =====
+function startCountdown() {
+  const container = document.getElementById('countdownContainer')
+  if (!container) return
+
+  const target = new Date(Date.UTC(2026, 6, 20, 10, 0, 0)) // 6pm MYT = 10am UTC
+  const cdDays = document.getElementById('cdDays')
+  const cdHours = document.getElementById('cdHours')
+  const cdMins = document.getElementById('cdMins')
+  const cdSecs = document.getElementById('cdSecs')
+
+  function tick() {
+    const diff = target - new Date()
+    if (diff <= 0) { container.style.display = 'none'; return }
+    container.style.display = ''
+    cdDays.textContent = String(Math.floor(diff / 86400000)).padStart(2, '0')
+    cdHours.textContent = String(Math.floor((diff % 86400000) / 3600000)).padStart(2, '0')
+    cdMins.textContent = String(Math.floor((diff % 3600000) / 60000)).padStart(2, '0')
+    cdSecs.textContent = String(Math.floor((diff % 60000) / 1000)).padStart(2, '0')
+  }
+
+  tick()
+  setInterval(tick, 1000)
+}
+
 // ===== INIT =====
 document.addEventListener('DOMContentLoaded', () => {
   const overlay = document.getElementById('modalOverlay')
   if (overlay) overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal() })
 
   if (document.getElementById('splashPage')) initSplash()
-  if (document.getElementById('homePage')) { loadEventInfo(); loadBadge(); setInterval(renderStats, 30000); setInterval(renderAttendanceGraph, 30000) }
+  if (document.getElementById('homePage')) { loadEventInfo(); loadBadge(); startCountdown(); setInterval(renderStats, 30000); setInterval(renderAttendanceGraph, 30000) }
   if (document.getElementById('programPage')) { loadProgram(); loadBadge() }
   if (document.getElementById('petugasPage')) { loadPetugas(); loadBadge() }
   if (document.getElementById('galleryPage')) { loadGallery(); loadBadge() }
