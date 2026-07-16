@@ -33,22 +33,24 @@
 </head>
 <body id="attendancePage">
   <div style="min-height:100vh;background:linear-gradient(135deg,var(--primary),#1a2a5e,var(--primary));display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px">
-    <img src="../LOGO-SDA.webp" alt="SDA" style="width:80px;height:80px;object-fit:contain;margin-bottom:24px;opacity:0.8" onerror="this.style.display='none'">
+    <div data-header style="display:flex;align-items:center;gap:12px;width:100%;max-width:400px;margin-bottom:8px">
+      <img src="../LOGO-SDA.webp" alt="SDA" style="width:80px;height:80px;object-fit:contain;opacity:0.8" onerror="this.style.display='none'">
+    </div>
 
     <div id="formSection" style="width:100%;max-width:400px">
-      <h1 style="color:white;font-size:22px;font-weight:700;text-align:center;margin-bottom:4px;letter-spacing:-0.3px">Kehadiran KKR</h1>
+      <h1 data-ci18n="title" style="color:white;font-size:22px;font-weight:700;text-align:center;margin-bottom:4px;letter-spacing:-0.3px">Kehadiran KKR</h1>
       <p id="dayIndicator" style="color:rgba(255,255,255,0.5);font-size:12px;text-align:center;margin-bottom:4px"></p>
-      <p style="color:var(--gold);font-size:13px;text-align:center;margin-bottom:32px">Sila isi maklumat anda untuk check in</p>
+      <p data-ci18n="sub" style="color:var(--gold);font-size:13px;text-align:center;margin-bottom:32px">Sila isi maklumat anda untuk check in</p>
       <p id="welcomeMsg" style="display:none;color:var(--gold);font-size:13px;text-align:center;margin-bottom:16px"></p>
 
       <form id="attendanceForm">
         <div class="form-group">
-          <label>Nama Penuh</label>
-          <input id="nameInput" type="text" class="form-input" placeholder="Masukkan nama anda" required>
+          <label data-ci18n="name">Nama Penuh</label>
+          <input id="nameInput" type="text" class="form-input" data-ci18n-ph="namePH" placeholder="Masukkan nama anda" required>
         </div>
         <div class="form-group">
-          <label>Gereja Asal</label>
-          <select id="churchSelect" class="form-input" required>
+          <label data-ci18n="church">Gereja Asal</label>
+          <select id="churchSelect" class="form-input" data-ci18n-ph="churchPH" required>
             <option value="">Pilih gereja...</option>
             <option>Gereja Kapa</option>
             <option>Gereja Koporingan</option>
@@ -60,12 +62,12 @@
           </select>
         </div>
         <div class="form-group">
-          <label>Bilangan Ahli Keluarga</label>
+          <label data-ci18n="bilangan">Bilangan Ahli Keluarga</label>
           <input id="bilanganInput" type="number" class="form-input" value="1" min="1" required>
         </div>
-        <button id="submitBtn" type="submit" class="btn btn-gold btn-block" style="margin-top:8px">Check In</button>
-        <a href="../home.html" style="color:rgba(255,255,255,0.35);font-size:12px;text-align:center;margin-top:16px;text-decoration:none;display:block">Ke Laman Utama →</a>
-        <a id="resetProfile" href="javascript:void(0)" style="display:none;color:rgba(255,255,255,0.4);font-size:11px;text-align:center;margin-top:8px;text-decoration:none" onclick="return clearProfile()">Bukan anda? Klik di sini</a>
+        <button id="submitBtn" type="submit" class="btn btn-gold btn-block" style="margin-top:8px" data-ci18n="btn">Check In</button>
+        <a href="../home.html" style="color:rgba(255,255,255,0.35);font-size:12px;text-align:center;margin-top:16px;text-decoration:none;display:block" data-ci18n="home">Ke Laman Utama →</a>
+        <a id="resetProfile" href="javascript:void(0)" style="display:none;color:rgba(255,255,255,0.4);font-size:11px;text-align:center;margin-top:8px;text-decoration:none" onclick="return clearProfile()" data-ci18n="reset">Bukan anda? Klik di sini</a>
       </form>
     </div>
 
@@ -75,6 +77,104 @@
   <script>
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxBpUWPdX2M0TG-DnZuQy_v53jxq2Dl27PuBJgJEx6wnCgeZT_gosQYWo0Ab1tnIEQ0/exec'
 const ATTENDANCE_SHEET = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSBR3ctB0FYmGtvlzTkTKe1-ZT8mN7cnA8pDUfnrBsANhchBYPB3swa1Ig83quvgALlynFOlDCwQEc1/pub?gid=1475228326&single=true&output=csv'
+
+// ===== LANGUAGE =====
+let clang = localStorage.getItem('kkr_lang') || 'ms'
+const C10N = {
+  ms: {
+    title: 'Kehadiran KKR',
+    sub: 'Sila isi maklumat anda untuk check in',
+    name: 'Nama Penuh',
+    namePH: 'Masukkan nama anda',
+    church: 'Gereja Asal',
+    churchPH: 'Pilih gereja...',
+    bilangan: 'Bilangan Ahli Keluarga',
+    btn: 'Check In',
+    home: 'Ke Laman Utama →',
+    reset: 'Bukan anda? Klik di sini',
+    welcomeBack: 'Selamat datang kembali, ',
+    confirm: 'Betul?',
+    confirmName: 'Nama',
+    confirmChurch: 'Gereja',
+    confirmBil: 'Bilangan',
+    dupTitle: 'Anda Sudah Check In',
+    dupMsg: 'Anda sudah check in hari ini',
+    successTitle: 'Check In Berjaya!',
+    successMsg: 'Selamat datang ke KKR',
+    redirect: 'Mengalihkan...',
+    beforeEvent: '⏳ KKR akan bermula 20 Julai 2026',
+    afterEvent: '✅ KKR telah tamat',
+    dayPrefix: '🎉 Hari ',
+  },
+  en: {
+    title: 'KKR Attendance',
+    sub: 'Please fill in your details to check in',
+    name: 'Full Name',
+    namePH: 'Enter your name',
+    church: 'Home Church',
+    churchPH: 'Select church...',
+    bilangan: 'Number of Family Members',
+    btn: 'Check In',
+    home: 'Go to Home →',
+    reset: 'Not you? Click here',
+    welcomeBack: 'Welcome back, ',
+    confirm: 'Confirm?',
+    confirmName: 'Name',
+    confirmChurch: 'Church',
+    confirmBil: 'Members',
+    dupTitle: 'Already Checked In',
+    dupMsg: 'You have already checked in today',
+    successTitle: 'Check In Successful!',
+    successMsg: 'Welcome to KKR',
+    redirect: 'Redirecting...',
+    beforeEvent: '⏳ KKR starts 20 July 2026',
+    afterEvent: '✅ KKR has ended',
+    dayPrefix: '🎉 Day ',
+  }
+}
+function ct(key) { return C10N[clang][key] || key }
+function toggleCLang() {
+  clang = clang === 'ms' ? 'en' : 'ms'
+  localStorage.setItem('kkr_lang', clang)
+  location.reload()
+}
+function applyCLang() {
+  const tgl = document.getElementById('clangToggle')
+  if (tgl) tgl.textContent = clang === 'ms' ? 'EN' : 'BM'
+  document.querySelectorAll('[data-ci18n]').forEach(el => {
+    el.textContent = ct(el.getAttribute('data-ci18n'))
+  })
+  document.querySelectorAll('[data-ci18n-ph]').forEach(el => {
+    el.placeholder = ct(el.getAttribute('data-ci18n-ph'))
+  })
+  const dayEl = document.getElementById('dayIndicator')
+  if (dayEl) dayEl.textContent = getKkrDay().label
+  const wMsg = document.getElementById('welcomeMsg')
+  if (wMsg && wMsg.style.display !== 'none') {
+    try {
+      const saved = JSON.parse(localStorage.getItem('checkin_user'))
+      if (saved && saved.name) wMsg.textContent = ct('welcomeBack') + saved.name + '!'
+    } catch(e) {}
+  }
+}
+;(function() {
+  const header = document.querySelector('[data-header]')
+  if (header && !document.getElementById('clangToggle')) {
+    const btn = document.createElement('button')
+    btn.id = 'clangToggle'
+    btn.textContent = clang === 'ms' ? 'EN' : 'BM'
+    Object.assign(btn.style, {
+      background: 'var(--gold)', color: 'white', border: 'none',
+      borderRadius: '20px', padding: '6px 14px', fontSize: '13px',
+      fontWeight: '700', cursor: 'pointer', marginLeft: 'auto',
+      flexShrink: '0', transition: 'opacity 0.2s'
+    })
+    btn.onmouseover = () => btn.style.opacity = '0.85'
+    btn.onmouseout = () => btn.style.opacity = '1'
+    btn.onclick = toggleCLang
+    header.appendChild(btn)
+  }
+})()
 
 function getTodayMsia() {
   const now = new Date()
@@ -111,12 +211,12 @@ function getKkrDay() {
   const msiaDate = new Date(Date.UTC(msia.getFullYear(), msia.getMonth(), msia.getDate()))
   const start = new Date(Date.UTC(2026, 6, 20))
   const end = new Date(Date.UTC(2026, 6, 26))
-  if (msiaDate < start) return { label: '⏳ KKR akan bermula 20 Julai 2026' }
-  if (msiaDate > end) return { label: '✅ KKR telah tamat' }
+  if (msiaDate < start) return { label: ct('beforeEvent') }
+  if (msiaDate > end) return { label: ct('afterEvent') }
   const day = Math.floor((msiaDate - start) / 86400000) + 1
   const months = ['Januari','Februari','Mac','April','Mei','Jun','Julai','Ogos','September','Oktober','November','Disember']
   const dateStr = `${msiaDate.getDate()} ${months[msiaDate.getMonth()]} ${msiaDate.getFullYear()}`
-  return { label: `🎉 Hari ${day} · ${dateStr}`, day }
+  return { label: ct('dayPrefix') + day + ' · ' + dateStr, day }
 }
 
 ;(function() {
@@ -168,7 +268,7 @@ function saveLocalCheckin(key) {
       if (saved.bilangan) document.getElementById('bilanganInput').value = saved.bilangan
       const msg = document.getElementById('welcomeMsg')
       msg.style.display = 'block'
-      msg.textContent = 'Selamat datang kembali, ' + saved.name + '!'
+      msg.textContent = ct('welcomeBack') + saved.name + '!'
       document.getElementById('resetProfile').style.display = 'block'
     }
   } catch (e) {}
@@ -181,7 +281,7 @@ document.getElementById('attendanceForm').addEventListener('submit', async funct
   const bilangan = parseInt(document.getElementById('bilanganInput').value, 10) || 1
   if (!name || !church) return
 
-  if (!confirm(`Nama: ${name}\nGereja: ${church}\nBilangan: ${bilangan}\n\nBetul?`)) return
+  if (!confirm(ct('confirmName') + ': ' + name + '\n' + ct('confirmChurch') + ': ' + church + '\n' + ct('confirmBil') + ': ' + bilangan + '\n\n' + ct('confirm') + '?')) return
 
   const dupKey = (name + '|' + church).toLowerCase()
   if (checkLocalDuplicate(dupKey)) {
@@ -233,13 +333,15 @@ function showStatus(isDuplicate) {
   statusSection.style.display = 'block'
 
   if (isDuplicate) {
-    statusSection.innerHTML = '<div class="status-box"><div class="status-icon duplicate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 9v2m0 4h.01"/></svg></div><h2>Anda Sudah Check In</h2><p class="status-msg" style="color:#fcd34d">Anda sudah check in hari ini</p><p class="status-sub">Mengalihkan...</p><a href="../home.html" style="color:var(--gold);font-size:13px;margin-top:12px;display:inline-block;text-decoration:none">Ke Laman Utama →</a></div>'
+    statusSection.innerHTML = '<div class="status-box"><div class="status-icon duplicate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 9v2m0 4h.01"/></svg></div><h2>' + ct('dupTitle') + '</h2><p class="status-msg" style="color:#fcd34d">' + ct('dupMsg') + '</p><p class="status-sub">' + ct('redirect') + '</p><a href="../home.html" style="color:var(--gold);font-size:13px;margin-top:12px;display:inline-block;text-decoration:none">' + ct('home') + '</a></div>'
   } else {
-    statusSection.innerHTML = '<div class="status-box"><div class="status-icon success"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg></div><h2>Check In Berjaya!</h2><p class="status-msg">Selamat datang ke KKR</p><p class="status-sub">Mengalihkan...</p><a href="../home.html" style="color:var(--gold);font-size:13px;margin-top:12px;display:inline-block;text-decoration:none">Ke Laman Utama →</a></div>'
+    statusSection.innerHTML = '<div class="status-box"><div class="status-icon success"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg></div><h2>' + ct('successTitle') + '</h2><p class="status-msg">' + ct('successMsg') + '</p><p class="status-sub">' + ct('redirect') + '</p><a href="../home.html" style="color:var(--gold);font-size:13px;margin-top:12px;display:inline-block;text-decoration:none">' + ct('home') + '</a></div>'
   }
 
   setTimeout(() => { window.location.href = '../home.html' }, 2500)
 }
+
+applyCLang()
   </script>
 </body>
 </html>

@@ -7,8 +7,184 @@ const SHEETS = {
   attendance: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSBR3ctB0FYmGtvlzTkTKe1-ZT8mN7cnA8pDUfnrBsANhchBYPB3swa1Ig83quvgALlynFOlDCwQEc1/pub?gid=1475228326&single=true&output=csv',
 }
 
-const DAY_LABELS = ['Isnin', 'Selasa', 'Rabu', 'Khamis', 'Jumaat']
 const MONTH_MAP = { Jan: 'Januari', Feb: 'Februari', Mar: 'Mac', Apr: 'April', May: 'Mei', Jun: 'Jun', Jul: 'Julai', Aug: 'Ogos', Sep: 'September', Oct: 'Oktober', Nov: 'November', Dec: 'Disember' }
+
+// ===== LANGUAGE =====
+let lang = localStorage.getItem('kkr_lang') || 'ms'
+
+const L10N = {
+  ms: {
+    appTitle: 'KKR Daerah Kapa',
+    pageHome: 'Laman Utama',
+    pageProgram: 'Aturcara',
+    pagePetugas: 'Petugas',
+    pageGallery: 'Galeri',
+    pageAnnounce: 'Pengumuman',
+    heroLabel: 'KKR Daerah Kapa',
+    heroTitle: 'KEBAKTIAN KEBANGUNAN ROHANI',
+    heroTheme: '"The Great Physician Is In"',
+    speakerRole: 'Pembicara',
+    speakerHint: 'Klik untuk info lanjut',
+    speakerBio: 'Pastor Kim Tae Hyung kini sedang melanjutkan pengajian di peringkat Doktor Pelayanan (Doctor of Ministry, D.Min.) di Adventist International Institute of Advanced Studies (AIIAS). Beliau kini memberi tumpuan kepada latihan misionari serta penyelidikan bagi menyiapkan disertasi kedoktorannya.',
+    statsToday: 'Kehadiran Hari Ini',
+    statsTotal: 'Jumlah Kehadiran Keseluruhan',
+    statsBefore: 'KKR akan bermula pada 20 Julai 2026',
+    countdownDays: 'Hari',
+    countdownHours: 'Jam',
+    countdownMins: 'Minit',
+    countdownSecs: 'Saat',
+    fabLabel: 'Hubungi Kami',
+    fabForm: 'Borang Soalan',
+    fabWA: 'WhatsApp',
+    splashLabel: 'KKR Daerah Kapa',
+    splashWelcome: 'Selamat Datang Ke',
+    splashHint: 'Sila tunggu sebentar...',
+    splashLoading: 'Memuatkan...',
+    programTitle: 'Aturcara',
+    programDesc: '20 - 25 Julai 2026',
+    programDownload: 'Muat Turun Aturcara',
+    programDownloadSub: 'Format PNG · 20-24 Julai 2026',
+    petugasTitle: 'Petugas',
+    petugasDesc: 'Senarai petugas KKR 2026',
+    galleryTitle: 'Galeri',
+    galleryDesc: 'Lagu tema dan media KKR 2026',
+    announceTitle: 'Pengumuman',
+    announceDesc: 'Maklumat terkini KKR 2026',
+    graphTitle: 'Kehadiran Setiap Hari',
+    graphEmpty: 'Tiada data kehadiran.',
+    lirikBtn: '📄 Lirik',
+    lirikClose: 'Tutup Lirik',
+    lirikBtnEn: '📄 English Lyrics',
+    lirikCloseEn: 'Tutup English Lyrics',
+    loading: 'Memuatkan...',
+    empty: 'Tiada data.',
+    error: 'Gagal memuat maklumat.',
+    livestream: 'Siaran Langsung',
+    livestreamBtn: 'Tonton Sekarang',
+    sabatTitle: 'Kebaktian Sabat Gabungan',
+    sabatVenue: 'Auditorium Adventist, Tamparuli',
+    sabatSesiPagi: 'Sesi Pagi',
+    sabatSesiPetang: 'Sesi Petang',
+    sabatClose: 'Tutup',
+    checkinTitle: 'Kehadiran KKR',
+    checkinSub: 'Sila isi maklumat anda untuk check in',
+    checkinName: 'Nama Penuh',
+    checkinChurch: 'Gereja Asal',
+    checkinBilangan: 'Bilangan Ahli Keluarga',
+    checkinBtn: 'Check In',
+    checkinSuccess: 'Check In Berjaya!',
+    checkinSuccessMsg: 'Selamat datang ke KKR',
+    checkinDuplicate: 'Anda Sudah Check In',
+    checkinDuplicateMsg: 'Anda sudah check in hari ini',
+    checkinRedirect: 'Mengalihkan...',
+    checkinHome: 'Ke Laman Utama →',
+    checkinReset: 'Bukan anda? Klik di sini',
+    dayMon: 'Isnin', dayTue: 'Selasa', dayWed: 'Rabu', dayThu: 'Khamis', dayFri: 'Jumaat', daySat: 'Sabat',
+    daySun: 'Ahad',
+    programSabat: 'Sabat',
+    downloadCard: 'Muat Turun Aturcara',
+    downloadCardSub: 'Format PNG · 20-24 Julai 2026',
+    ajkTitle: 'Senarai AJK KKR 2026',
+    confirmTitle: 'Betul?',
+    confirmName: 'Nama',
+    confirmChurch: 'Gereja',
+    confirmBil: 'Bilangan',
+    speakerModalTitle: 'Latar Belakang Pembicara',
+    petugasModalTitle: 'Senarai Petugas',
+    rolePetugas: 'Petugas',
+    noData: 'Tiada data.',
+  },
+  en: {
+    appTitle: 'KKR Kapa District',
+    pageHome: 'Home',
+    pageProgram: 'Schedule',
+    pagePetugas: 'Workers',
+    pageGallery: 'Gallery',
+    pageAnnounce: 'Announcements',
+    heroLabel: 'KKR Kapa District',
+    heroTitle: 'KEBAKTIAN KEBANGUNAN ROHANI',
+    heroTheme: '"The Great Physician Is In"',
+    speakerRole: 'Speaker',
+    speakerHint: 'Click for more info',
+    speakerBio: 'Pastor Kim Tae Hyung is currently pursuing a Doctor of Ministry (D.Min.) at the Adventist International Institute of Advanced Studies (AIIAS). He is currently focused on missionary training and research for his doctoral dissertation.',
+    statsToday: "Today's Attendance",
+    statsTotal: 'Total Attendance',
+    statsBefore: 'KKR will begin on 20 July 2026',
+    countdownDays: 'Days',
+    countdownHours: 'Hours',
+    countdownMins: 'Mins',
+    countdownSecs: 'Secs',
+    fabLabel: 'Contact Us',
+    fabForm: 'Question Form',
+    fabWA: 'WhatsApp',
+    splashLabel: 'KKR Kapa District',
+    splashWelcome: 'Welcome To',
+    splashHint: 'Please wait...',
+    splashLoading: 'Loading...',
+    programTitle: 'Schedule',
+    programDesc: '20 - 25 July 2026',
+    programDownload: 'Download Schedule',
+    programDownloadSub: 'PNG Format · 20-24 July 2026',
+    petugasTitle: 'Workers',
+    petugasDesc: 'List of KKR 2026 workers',
+    galleryTitle: 'Gallery',
+    galleryDesc: 'Theme song and KKR 2026 media',
+    announceTitle: 'Announcements',
+    announceDesc: 'Latest KKR 2026 info',
+    graphTitle: 'Daily Attendance',
+    graphEmpty: 'No attendance data.',
+    lirikBtn: '📄 Lyrics',
+    lirikClose: 'Close Lyrics',
+    lirikBtnEn: '📄 BM Lyrics',
+    lirikCloseEn: 'Close BM Lyrics',
+    loading: 'Loading...',
+    empty: 'No data.',
+    error: 'Failed to load.',
+    livestream: 'Live Stream',
+    livestreamBtn: 'Watch Now',
+    sabatTitle: 'Joint Sabbath Service',
+    sabatVenue: 'Auditorium Adventist, Tamparuli',
+    sabatSesiPagi: 'Morning Session',
+    sabatSesiPetang: 'Afternoon Session',
+    sabatClose: 'Close',
+    checkinTitle: 'KKR Attendance',
+    checkinSub: 'Please fill in your details to check in',
+    checkinName: 'Full Name',
+    checkinChurch: 'Home Church',
+    checkinBilangan: 'Number of Family Members',
+    checkinBtn: 'Check In',
+    checkinSuccess: 'Check In Successful!',
+    checkinSuccessMsg: 'Welcome to KKR',
+    checkinDuplicate: 'Already Checked In',
+    checkinDuplicateMsg: 'You have already checked in today',
+    checkinRedirect: 'Redirecting...',
+    checkinHome: 'Go to Home →',
+    checkinReset: 'Not you? Click here',
+    dayMon: 'Monday', dayTue: 'Tuesday', dayWed: 'Wednesday', dayThu: 'Thursday', dayFri: 'Friday', daySat: 'Sabbath',
+    daySun: 'Sunday',
+    programSabat: 'Sabbath',
+    downloadCard: 'Download Schedule',
+    downloadCardSub: 'PNG Format · 20-24 July 2026',
+    ajkTitle: 'KKR 2026 Committee List',
+    confirmTitle: 'Confirm?',
+    confirmName: 'Name',
+    confirmChurch: 'Church',
+    confirmBil: 'Members',
+    speakerModalTitle: 'Speaker Background',
+    petugasModalTitle: 'Worker List',
+    rolePetugas: 'Worker',
+    noData: 'No data.',
+  }
+}
+
+function t(key) { return L10N[lang][key] || key }
+function dayLabels() { return [t('dayMon'), t('dayTue'), t('dayWed'), t('dayThu'), t('dayFri')] }
+
+function toggleLang() {
+  lang = lang === 'ms' ? 'en' : 'ms'
+  localStorage.setItem('kkr_lang', lang)
+  location.reload()
+}
 
 // ===== CSV PARSER =====
 function parseCSV(text) {
@@ -134,7 +310,7 @@ async function renderStats() {
   const end = new Date(Date.UTC(2026, 6, 26))
 
   if (msiaDate < start) {
-    container.innerHTML = '<div class="stat-card" style="width:100%;text-align:center"><span class="stat-number" style="font-size:16px">⏳</span><span class="stat-label">KKR akan bermula pada 20 Julai 2026</span></div>'
+    container.innerHTML = '<div class="stat-card" style="width:100%;text-align:center"><span class="stat-number" style="font-size:16px">⏳</span><span class="stat-label">' + t('statsBefore') + '</span></div>'
     return
   }
 
@@ -142,11 +318,11 @@ async function renderStats() {
   if (!stats) return
 
   if (msiaDate > end) {
-    container.innerHTML = `<div class="stat-card" style="width:100%"><span class="stat-number">${stats.total}</span><span class="stat-label">Jumlah Kehadiran Keseluruhan</span></div>`
+    container.innerHTML = `<div class="stat-card" style="width:100%"><span class="stat-number">${stats.total}</span><span class="stat-label">${t('statsTotal')}</span></div>`
     return
   }
 
-  container.innerHTML = `<div class="stat-card" style="width:100%"><span class="stat-number">${stats.today}</span><span class="stat-label">Kehadiran Hari Ini</span></div>`
+  container.innerHTML = `<div class="stat-card" style="width:100%"><span class="stat-number">${stats.today}</span><span class="stat-label">${t('statsToday')}</span></div>`
 }
 
 async function renderAttendanceGraph() {
@@ -162,11 +338,11 @@ async function renderAttendanceGraph() {
     })
     const dates = Object.keys(dayMap).sort()
     if (!dates.length) {
-      el.innerHTML = '<p style="color:var(--gray);font-size:13px;text-align:center">Tiada data kehadiran.</p>'
+      el.innerHTML = '<p style="color:var(--gray);font-size:13px;text-align:center">' + t('graphEmpty') + '</p>'
       return
     }
     const max = Math.max(...Object.values(dayMap), 1)
-    const dayNames = ['Ahad', 'Isnin', 'Selasa', 'Rabu', 'Khamis', 'Jumaat', 'Sabtu']
+    const dayNames = [t('daySun') || 'Ahad', t('dayMon'), t('dayTue'), t('dayWed'), t('dayThu'), t('dayFri'), t('daySat')]
     let html = '<div class="graph-body">'
     dates.forEach((d, i) => {
       const day = new Date(d)
@@ -184,7 +360,7 @@ async function renderAttendanceGraph() {
     html += '</div>'
     el.innerHTML = html
   } catch (e) {
-    el.innerHTML = '<p style="color:var(--gray);font-size:13px;text-align:center">Tiada data kehadiran.</p>'
+    el.innerHTML = '<p style="color:var(--gray);font-size:13px;text-align:center">' + t('graphEmpty') + '</p>'
   }
 }
 
@@ -221,6 +397,13 @@ document.addEventListener('click', function closeFab(e) {
 })
 
 function setupContactFab() {
+  const label = document.querySelector('.fab-label')
+  if (label) label.textContent = t('fabLabel')
+  const options = document.querySelectorAll('.contact-option span')
+  if (options.length >= 2) {
+    options[0].textContent = t('fabForm')
+    options[1].textContent = t('fabWA')
+  }
   getEventInfo().then(info => {
     const waBtn = document.getElementById('waOption')
     const formBtn = document.getElementById('formOption')
@@ -256,8 +439,8 @@ function openSpeakerModal() {
       <div class="speaker-modal-gradient"></div>
       <div class="speaker-modal-info">
         <h3 class="speaker-modal-name">${speakerInfo.name}</h3>
-        <p class="speaker-modal-role">Pembicara</p>
-        <p class="speaker-modal-bio">${speakerInfo.bio || 'Maklumat latar belakang akan dikemaskini.'}</p>
+        <p class="speaker-modal-role">${t('speakerRole')}</p>
+        <p class="speaker-modal-bio">${speakerInfo.bio || t('noData')}</p>
       </div>
       <button class="speaker-modal-close" onclick="closeModal()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -282,14 +465,14 @@ function openSabatModal() {
         <div style="width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,var(--gold),#a8852e);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-bottom:16px">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
         </div>
-        <h3 style="font-size:20px;font-weight:800;color:white;margin:0 0 4px">Kebaktian Sabat Gabungan</h3>
+        <h3 style="font-size:20px;font-weight:800;color:white;margin:0 0 4px">${t('sabatTitle')}</h3>
         <p style="color:var(--gold);font-size:13px;font-weight:600;margin:0 0 2px">25 Julai 2026</p>
-        <p style="color:rgba(255,255,255,0.6);font-size:12px;margin:0">Auditorium Adventist, Tamparuli</p>
+        <p style="color:rgba(255,255,255,0.6);font-size:12px;margin:0">${t('sabatVenue')}</p>
       </div>
       <div class="sabat-gradient"></div>
       <div class="sabat-content">
         <div class="sabat-sesi">
-          <h4 class="sabat-sesi-title">Sesi Pagi</h4>
+          <h4 class="sabat-sesi-title">${t('sabatSesiPagi')}</h4>
           <table class="sabat-table">
             <tr><td class="sabat-time">7.30 pagi</td><td class="sabat-desc">Ketibaan Jemaat</td></tr>
             <tr><td class="sabat-time">8.00 – 8.45 pagi</td><td class="sabat-desc">Ucapan Alu-aluan<div class="sabat-sub">Lagu Pujian dan Penyembahan<br>Tayangan Montaj<br>Laporan Misi Sedunia<br>Sorotan Pelajaran Sekolah Sabat</div></td></tr>
@@ -302,7 +485,7 @@ function openSabatModal() {
           </table>
         </div>
         <div class="sabat-sesi">
-          <h4 class="sabat-sesi-title">Sesi Petang</h4>
+          <h4 class="sabat-sesi-title">${t('sabatSesiPetang')}</h4>
           <table class="sabat-table">
             <tr><td class="sabat-time">2.00 petang</td><td class="sabat-desc">Program Penutupan<div class="sabat-sub">Lagu Pujian oleh koir-koir tempatan (akan disahkan kemudian)</div></td></tr>
             <tr><td class="sabat-time">2.30 petang</td><td class="sabat-desc">Ucapan Penghargaan dan Tanda Terima Kasih (Sesi Bergambar)</td></tr>
@@ -358,14 +541,14 @@ async function loadEventInfo() {
           <line x1="12" y1="19" x2="12" y2="23"/>
           <line x1="8" y1="23" x2="16" y2="23"/>
         </svg>
-        Pembicara
+        ${t('speakerRole')}
       </h2>
       <div class="speaker-card">
-        <img src="PrKim.jpeg" alt="Speaker" class="speaker-img" onerror="this.src='data:image/svg+xml,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'64\\' height=\\'64\\'><rect fill=\\'%23c8a24e\\' width=\\'64\\' height=\\'64\\' rx=\\'32\\'/><text x=\\'32\\' y=\\'38\\' text-anchor=\\'middle\\' fill=\\'white\\' font-size=\\'12\\' font-family=\\'sans-serif\\'>Pr</text></svg>'">
+        <img src="PrKim.jpeg" alt="Speaker" class="speaker-img" onerror="this.src='data:image/svg+xml,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'64\\' height=\\'64\\'><rect fill=\\'%23c8a24e\\' width=\\'64\\' height=\\'64\\' rx=\\'32\\'/><text x=\\'32\\' y=\\'38\\' text-anchor=\\'middle\\' fill=\\'white\\' font-size=\\'12\\' font-family=\\'sans-serif'>Pr</text></svg>'">
         <div class="speaker-info" style="flex:1">
           <div class="speaker-name">${info['Main Speaker'] || '-'}</div>
-          <div class="speaker-role">Pembicara</div>
-          <div class="speaker-hint">Klik untuk info lanjut</div>
+          <div class="speaker-role">${t('speakerRole')}</div>
+          <div class="speaker-hint">${t('speakerHint')}</div>
         </div>
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
       </div>`
@@ -379,16 +562,16 @@ async function loadEventInfo() {
 
     const graphCard = document.createElement('div')
     graphCard.className = 'card'
-    graphCard.innerHTML = '<h2 style="font-size:20px;margin-bottom:16px">📊 Kehadiran Setiap Hari</h2><div id="attendanceGraph"><div class="loading-wrap"><div class="spinner"></div></div></div>'
+    graphCard.innerHTML = `<h2 style="font-size:20px;margin-bottom:16px">📊 ${t('graphTitle')}</h2><div id="attendanceGraph"><div class="loading-wrap"><div class="spinner"></div></div></div>`
     container.appendChild(graphCard)
     renderAttendanceGraph()
 
     if (info['Livestream']) {
       const ls = document.createElement('div')
       ls.className = 'card'
-      ls.innerHTML = `<h2 style="font-size:20px;margin-bottom:20px">📺 Siaran Langsung</h2><a href="${info['Livestream']}" target="_blank" class="livestream-link">
+      ls.innerHTML = `<h2 style="font-size:20px;margin-bottom:20px">📺 ${t('livestream')}</h2><a href="${info['Livestream']}" target="_blank" class="livestream-link">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-        Tonton Sekarang
+        ${t('livestreamBtn')}
       </a>`
       container.appendChild(ls)
     }
@@ -403,14 +586,14 @@ async function loadEventInfo() {
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
         </div>
         <div style="flex:1">
-          <div style="font-weight:700;font-size:15px;color:var(--primary)">Kebaktian Sabat Gabungan</div>
-          <div style="font-size:12px;color:var(--gray);margin-top:2px">25 Julai 2026 · Auditorium Adventist, Tamparuli</div>
+          <div style="font-weight:700;font-size:15px;color:var(--primary)">${t('sabatTitle')}</div>
+          <div style="font-size:12px;color:var(--gray);margin-top:2px">25 Julai 2026 · ${t('sabatVenue')}</div>
         </div>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
       </div>`
     container.appendChild(sabatCard)
   } catch (e) {
-    container.innerHTML = '<div class="card"><p style="color:#ef4444;font-size:13px">Gagal memuat maklumat.</p></div>'
+    container.innerHTML = '<div class="card"><p style="color:#ef4444;font-size:13px">' + t('error') + '</p></div>'
   }
 }
 
@@ -423,7 +606,7 @@ async function loadProgram() {
   container.innerHTML = '<div class="loading-wrap"><div class="spinner"></div></div>'
   try {
     programData = await getProgram()
-    if (!programData.days.length) { container.innerHTML = '<div class="empty-state">Tiada data program.</div>'; return }
+    if (!programData.days.length) { container.innerHTML = '<div class="empty-state">' + t('noData') + '</div>'; return }
 
     let tabsHTML = '<div class="program-dates" id="programTabs">'
     const rawDates = programData.days
@@ -435,12 +618,12 @@ async function loadProgram() {
       const displayShort = parts[0] ? `${parts[0]} ${shortMonth}` : d
 
       tabsHTML += `<button class="program-date-tab" data-index="${i}" onclick="selectProgramDay(${i})">
-        <span class="pdt-label">${DAY_LABELS[i] || ''}</span>
+        <span class="pdt-label">${dayLabels()[i] || ''}</span>
         <span class="pdt-date">${displayShort}</span>
       </button>`
     })
     tabsHTML += `<button class="program-date-tab" data-index="${rawDates.length}" onclick="selectProgramDay(${rawDates.length})">
-      <span class="pdt-label">Sabat</span>
+      <span class="pdt-label">${t('programSabat')}</span>
       <span class="pdt-date">25 Jul</span>
     </button>`
     tabsHTML += '</div><div id="programDayContent"></div>'
@@ -457,7 +640,7 @@ async function loadProgram() {
     } catch (e) {}
     selectProgramDay(defaultDay)
   } catch (e) {
-    container.innerHTML = '<div class="card"><p style="color:#ef4444;font-size:13px">Gagal memuat aturcara.</p></div>'
+    container.innerHTML = '<div class="card"><p style="color:#ef4444;font-size:13px">' + t('error') + '</p></div>'
   }
 }
 
@@ -482,9 +665,9 @@ const SABAT_SCHEDULE = {
 function renderSabatProgram() {
   let html = `<div class="program-day-card">
     <div class="program-day-header">
-      <div class="day-name">Sabat</div>
+      <div class="day-name">${t('programSabat')}</div>
       <div class="day-date">25 Julai 2026</div>
-      <div style="font-size:12px;color:var(--gold);font-weight:500;margin-top:4px">Auditorium Adventist, Tamparuli</div>
+      <div style="font-size:12px;color:var(--gold);font-weight:500;margin-top:4px">${t('sabatVenue')}</div>
     </div>`
 
   const renderSlots = (sesi, title) => {
@@ -506,8 +689,8 @@ function renderSabatProgram() {
     html += `</div>`
   }
 
-  renderSlots(SABAT_SCHEDULE.pagi, 'Sesi Pagi')
-  renderSlots(SABAT_SCHEDULE.petang, 'Sesi Petang')
+  renderSlots(SABAT_SCHEDULE.pagi, t('sabatSesiPagi'))
+  renderSlots(SABAT_SCHEDULE.petang, t('sabatSesiPetang'))
 
   html += '</div>'
   return html
@@ -539,7 +722,7 @@ function selectProgramDay(index) {
 
   let html = `<div class="program-day-card">
     <div class="program-day-header">
-      <div class="day-name">${DAY_LABELS[index] || ''}</div>
+      <div class="day-name">${dayLabels()[index] || ''}</div>
       <div class="day-date">${displayDate}</div>
     </div>`
 
@@ -557,7 +740,7 @@ function selectProgramDay(index) {
     </div>`
   })
 
-  if (!hasSlots) html += '<div class="empty-state">Tiada jadual untuk hari ini.</div>'
+  if (!hasSlots) html += '<div class="empty-state">' + t('noData') + '</div>'
   html += '</div>'
   content.innerHTML = html
 
@@ -569,19 +752,56 @@ function selectProgramDay(index) {
 }
 
 // ===== PETUGAS =====
+const AJK_LIST = [
+  { role: 'PENAUNG', person: 'Pdt. Dr. Fransiskus Irwan Tede' },
+  { role: 'PENASIHAT', person: 'Pdt. Freddy T. Sihaloho' },
+  { role: 'PENGARAH', person: 'Pdt. Melkianus M. Dima' },
+  { role: 'TIM PENGARAH', person: 'Pdt. Andi M. Silaya / Pdt. Ev. Frits Oley / Pdt. Ronny R. Roring / Pdt. Yohanis Li' },
+  { role: 'SETIAUSAHA', person: 'Evan R. Liwutang' },
+  { role: 'BENDAHARI', person: 'Melki M. Tewu' },
+  { role: 'JURUACARA', person: 'Khenny S. Mendes' },
+  { role: 'PIANIS / ORGANIS', person: 'Meylani R. Tangon' },
+  { role: 'KETUA HOST / TEMPAT', person: 'Elisabeth A. Tewu' },
+  { role: 'KETUA SOUND SYSTEM', person: 'Che-Che Ballo' },
+  { role: 'KETUA MULTIMEDIA / STREAMING', person: 'Yansen J. Manuhutu' },
+  { role: 'KETUA TEMPAT LETAK KENDERAAN', person: 'Yopi Tawainella' },
+  { role: 'KETUA KEBERSIHAN', person: 'Irma R. Sandehang' },
+  { role: 'KETUA MAKANAN / MINUMAN', person: 'Novi D. M. Suatan' },
+  { role: 'KETUA HOSPITALITI', person: 'Lady Y. T. Tumbelaka' },
+  { role: 'KETUA KESELAMATAN', person: 'Alfian Sandehang' },
+  { role: 'KETUA JEMPUTAN / PENGANGKUTAN', person: 'Kel. Besar Gereja SDA Kapa' },
+  { role: 'KETUA KREATIF / DEKORASI', person: 'Dhean T. Langi' },
+  { role: 'KETUA DOKUMENTASI', person: 'Ivan Pandey' },
+  { role: 'KETUA AKOMODASI DAN PERALATAN', person: 'Irwan Marthen' },
+  { role: 'KETUA Kesihatan / First Aid', person: 'Klinik Tabib Kecil (dr. Yulianti Kaparang)' },
+  { role: 'KETUA PUBLISITI DAN PROMOSI', person: 'Pdt. Melkianus M. Dima' },
+  { role: 'AJK PENGANGKUTAN', person: 'Ryno T. / Pheyby L. / Axel L. / Sam J. / Kris S. / Leo P. / Royke T.' },
+]
+
+function renderAJK() {
+  let html = '<div class="card" style="margin-top:20px">'
+  html += `<h2 style="font-size:20px;margin-bottom:16px">${t('ajkTitle')}</h2>`
+  html += '<div class="ajk-grid">'
+  AJK_LIST.forEach(a => {
+    html += `<div class="ajk-item"><span class="ajk-role">${a.role}</span><span class="ajk-person">${a.person}</span></div>`
+  })
+  html += '</div></div>'
+  return html
+}
+
 async function loadPetugas() {
   const container = document.getElementById('petugasContainer')
   if (!container) return
   container.innerHTML = '<div class="loading-wrap"><div class="spinner"></div></div>'
   try {
     const data = await getPetugas()
-    if (!data.days.length) { container.innerHTML = '<div class="empty-state">Tiada data petugas.</div>'; return }
+    if (!data.days.length) { container.innerHTML = '<div class="empty-state">' + t('noData') + '</div>'; return }
 
     let html = '<div class="petugas-grid">'
     data.days.forEach((d, i) => {
       html += `<div class="petugas-card" onclick="openPetugasModal(${i})">
         <div>
-          <div class="day-label">${DAY_LABELS[i] || ''}</div>
+          <div class="day-label">${dayLabels()[i] || ''}</div>
           <div class="day-date">${d}</div>
         </div>
         <div class="arrow">›</div>
@@ -589,16 +809,16 @@ async function loadPetugas() {
     })
     html += '</div>'
     window.__petugasData = data
-    container.innerHTML = html
+    container.innerHTML = html + renderAJK()
   } catch (e) {
-    container.innerHTML = '<div class="card"><p style="color:#ef4444;font-size:13px">Gagal memuat petugas.</p></div>'
+    container.innerHTML = '<div class="card"><p style="color:#ef4444;font-size:13px">' + t('error') + '</p></div>'
   }
 }
 
 function openPetugasModal(dayIndex) {
   const data = window.__petugasData
   if (!data || !data.days[dayIndex]) return
-  const title = `${DAY_LABELS[dayIndex] || ''}, ${data.days[dayIndex]}`
+  const title = `${dayLabels()[dayIndex] || ''}, ${data.days[dayIndex]}`
   let body = ''
   data.roles.forEach(r => {
     body += `<div class="role-item"><div class="role-dot"></div><div><div class="role-name">${r.role}</div><div class="role-person">${r.assignments[dayIndex] || '-'}</div></div></div>`
@@ -613,7 +833,7 @@ async function loadAnnouncements() {
   container.innerHTML = '<div class="loading-wrap"><div class="spinner"></div></div>'
   try {
     const list = await getAnnouncements()
-    if (!list.length) { container.innerHTML = '<div class="empty-state">Tiada pengumuman.</div>'; return }
+    if (!list.length) { container.innerHTML = '<div class="empty-state">' + t('noData') + '</div>'; return }
 
     window.__announceData = list
     updateAnnounceBadge(list.length)
@@ -631,7 +851,7 @@ async function loadAnnouncements() {
     html += '</div>'
     container.innerHTML = html
   } catch (e) {
-    container.innerHTML = '<div class="card"><p style="color:#ef4444;font-size:13px">Gagal memuat pengumuman.</p></div>'
+    container.innerHTML = '<div class="card"><p style="color:#ef4444;font-size:13px">' + t('error') + '</p></div>'
   }
 }
 
@@ -651,16 +871,31 @@ let currentSong = -1
 
 const LIRIK = `(1)<br>Tabib besar ada dekat,<br>Yesus yang berkasihan;<br>Hai orang yang berhati brat,<br>Dengarlah suara Tuhan.<br><br><strong>Korus</strong><br>Lagu yang amat merdu<br>Bagi syurga dan dunia<br>Nyanyian amat merdu:<br>Nama Tuhan Yesus.<br><br>(2)<br>Ketakutan dihapuskan<br>Oleh namanya Yesus;<br>Aku rindulah dengarkan<br>Nama Yesus yang indah<br><br>(3)<br>Hormati dan puji Domba<br>Yang mati ganti kita;<br>Betapa manis bunyinya<br>Khabar slamat yang indah.<br><br>(4)<br>Bila nanti Tuhan datang,<br>Kita akan ke syurga;<br>Di sana kita slalu snang<br>Dan memakai mahkota.`
 
+const LIRIK_EN = `(1)<br>The Great Physician now is near,<br>The sympathizing Jesus;<br>He speaks the drooping heart to cheer,<br>Oh, hear the voice of Jesus.<br><br><strong>Refrain</strong><br>Sweetest note in seraph song,<br>Sweetest name on mortal tongue;<br>Sweetest carol ever sung:<br>Jesus, blessed Jesus.<br><br>(2)<br>Your many sins are all forgiven,<br>Oh, hear the voice of Jesus;<br>Go on your way in peace to heaven,<br>And wear a crown with Jesus.<br><br>(3)<br>Come, weary sinner, see your need,<br>And trust the love of Jesus;<br>In Him you have a friend indeed,<br>He'll give you peace with Jesus.<br><br>(4)<br>And when to death's dark vale you come,<br>And think of seeing Jesus,<br>His presence still shall cheer your gloom,<br>The bliss of heaven with Jesus.`
+
 function toggleLirik(index) {
   const el = document.getElementById(`lirik${index}`)
   if (!el) return
   const btn = document.getElementById(`lirikBtn${index}`)
   if (el.style.display === 'none' || !el.style.display) {
     el.style.display = 'block'
-    if (btn) btn.textContent = 'Tutup Lirik'
+    if (btn) btn.textContent = t('lirikClose')
   } else {
     el.style.display = 'none'
-    if (btn) btn.textContent = '📄 Lirik'
+    if (btn) btn.textContent = t('lirikBtn')
+  }
+}
+
+function toggleLirikEn(index) {
+  const el = document.getElementById(`lirikEn${index}`)
+  if (!el) return
+  const btn = document.getElementById(`lirikEnBtn${index}`)
+  if (el.style.display === 'none' || !el.style.display) {
+    el.style.display = 'block'
+    if (btn) btn.textContent = t('lirikCloseEn')
+  } else {
+    el.style.display = 'none'
+    if (btn) btn.textContent = t('lirikBtnEn')
   }
 }
 
@@ -689,9 +924,15 @@ function loadGallery() {
         <span class="gallery-time" id="time${i}">0:00</span>
         <audio id="audio${i}" preload="none" src="${s.file}"></audio>
       </div>
-      <button class="lirik-toggle" id="lirikBtn${i}" onclick="toggleLirik(${i})">📄 Lirik</button>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button class="lirik-toggle" id="lirikBtn${i}" onclick="toggleLirik(${i})">${t('lirikBtn')}</button>
+        <button class="lirik-toggle" id="lirikEnBtn${i}" onclick="toggleLirikEn(${i})">${t('lirikBtnEn')}</button>
+      </div>
       <div class="lirik-content" id="lirik${i}" style="display:none">
         <div class="lirik-body">${LIRIK}</div>
+      </div>
+      <div class="lirik-content" id="lirikEn${i}" style="display:none">
+        <div class="lirik-body">${LIRIK_EN}</div>
       </div>
     </div>`
   })
@@ -759,8 +1000,14 @@ function formatTime(seconds) {
 function initSplash() {
   const eventEl = document.getElementById('splashEventName')
   const themeEl = document.getElementById('splashTheme')
+  const labelEl = document.querySelector('.splash-content .label')
+  const welcomeEl = document.querySelector('.splash-content h1')
+  const hintEl = document.querySelector('.splash-hint')
+  if (labelEl) labelEl.textContent = t('splashLabel')
+  if (welcomeEl) welcomeEl.textContent = t('splashWelcome')
+  if (hintEl) hintEl.textContent = t('splashHint')
   getEventInfo().then(info => {
-    if (eventEl) eventEl.textContent = info['Event Name'] || 'KEBAKTIAN KEBANGUNAN ROHANI'
+    if (eventEl) eventEl.textContent = info['Event Name'] || t('heroTitle')
     if (themeEl) themeEl.textContent = `"${info['Theme'] || 'The Great Physician Is In'}"`
   }).catch(() => {})
 
@@ -771,8 +1018,89 @@ function initSplash() {
   }, 1500)
 }
 
+// ===== LANGUAGE UI =====
+function applyTranslations() {
+  const langToggle = document.getElementById('langToggle')
+  if (langToggle) langToggle.textContent = lang === 'ms' ? 'EN' : 'BM'
+
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    el.textContent = t(el.getAttribute('data-i18n'))
+  })
+
+  const heroLabels = document.querySelectorAll('.hero-label, .home-label')
+  heroLabels.forEach(el => { el.textContent = t('heroLabel') })
+
+  const heroTitles = document.querySelectorAll('.hero-title, .home-hero > h1')
+  heroTitles.forEach(el => { el.textContent = t('heroTitle') })
+
+  document.querySelectorAll('.subtitle').forEach(el => { el.textContent = t('heroLabel') })
+
+  const pageTitle = document.querySelector('.page-title')
+  if (pageTitle) {
+    const key = pageTitle.getAttribute('data-i18n')
+    if (key) pageTitle.textContent = t(key)
+  }
+
+  const pageDesc = document.querySelector('.page-desc')
+  if (pageDesc) {
+    const key = pageDesc.getAttribute('data-i18n')
+    if (key) pageDesc.textContent = t(key)
+  }
+
+  document.querySelectorAll('.countdown-lbl').forEach(el => {
+    const map = { 'Hari': 'countdownDays', 'Jam': 'countdownHours', 'Minit': 'countdownMins', 'Saat': 'countdownSecs', 'Days': 'countdownDays', 'Hours': 'countdownHours', 'Mins': 'countdownMins', 'Secs': 'countdownSecs' }
+    const key = map[el.textContent.trim()]
+    if (key) el.textContent = t(key)
+  })
+
+  const navLinks = {
+    'homeLink': 'pageHome',
+    'programLink': 'pageProgram',
+    'petugasLink': 'pagePetugas',
+    'galleryLink': 'pageGallery',
+    'announceLink': 'pageAnnounce',
+  }
+  Object.entries(navLinks).forEach(([id, key]) => {
+    const el = document.getElementById(id)
+    if (el) el.textContent = t(key)
+  })
+
+  const downloadCards = document.querySelectorAll('.download-card-title')
+  downloadCards.forEach(el => {
+    const key = el.getAttribute('data-i18n') || 'downloadCard'
+    el.textContent = t(key)
+  })
+  const downloadSubs = document.querySelectorAll('.download-card-sub')
+  downloadSubs.forEach(el => {
+    const key = el.getAttribute('data-i18n') || 'downloadCardSub'
+    el.textContent = t(key)
+  })
+}
+
+function addLangToggleUI() {
+  let header = document.querySelector('.page-header .header-inner') || document.querySelector('.home-hero .header-inner')
+  if (!header) {
+    const pageHeader = document.querySelector('.page-header')
+    if (pageHeader) {
+      const inner = document.createElement('div')
+      inner.className = 'header-inner'
+      inner.style.cssText = 'display:flex;align-items:center;gap:12px;width:100%;margin-bottom:12px'
+      pageHeader.insertBefore(inner, pageHeader.firstChild)
+      header = inner
+    }
+  }
+  if (!header || document.getElementById('langToggle')) return
+  const btn = document.createElement('button')
+  btn.id = 'langToggle'
+  btn.textContent = lang === 'ms' ? 'EN' : 'BM'
+  btn.style.cssText = 'background:var(--gold);color:white;border:none;border-radius:20px;padding:6px 14px;font-size:13px;font-weight:700;cursor:pointer;margin-left:auto;flex-shrink:0;transition:opacity 0.2s'
+  btn.onmouseover = () => { btn.style.opacity = '0.85' }
+  btn.onmouseout = () => { btn.style.opacity = '1' }
+  btn.onclick = toggleLang
+  header.appendChild(btn)
+}
+
 // ===== COUNTDOWN =====
-function startCountdown() {
   const container = document.getElementById('countdownContainer')
   if (!container) return
 
@@ -809,4 +1137,6 @@ document.addEventListener('DOMContentLoaded', () => {
   if (document.getElementById('announcePage')) loadAnnouncements()
 
   setupContactFab()
+  addLangToggleUI()
+  applyTranslations()
 })
