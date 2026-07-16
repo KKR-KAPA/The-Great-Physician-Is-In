@@ -10,7 +10,8 @@ const SHEETS = {
 const MONTH_MAP = { Jan: 'Januari', Feb: 'Februari', Mar: 'Mac', Apr: 'April', May: 'Mei', Jun: 'Jun', Jul: 'Julai', Aug: 'Ogos', Sep: 'September', Oct: 'Oktober', Nov: 'November', Dec: 'Disember' }
 
 // ===== LANGUAGE =====
-let lang = localStorage.getItem('kkr_lang') || 'ms'
+let lang = 'ms'
+try { lang = localStorage.getItem('kkr_lang') || 'ms' } catch (e) {}
 
 const L10N = {
   ms: {
@@ -182,7 +183,7 @@ function dayLabels() { return [t('dayMon'), t('dayTue'), t('dayWed'), t('dayThu'
 
 function toggleLang() {
   lang = lang === 'ms' ? 'en' : 'ms'
-  localStorage.setItem('kkr_lang', lang)
+  try { localStorage.setItem('kkr_lang', lang) } catch (e) {}
   location.reload()
 }
 
@@ -998,22 +999,26 @@ function formatTime(seconds) {
 
 // ===== SPLASH =====
 function initSplash() {
-  const eventEl = document.getElementById('splashEventName')
-  const themeEl = document.getElementById('splashTheme')
-  const labelEl = document.querySelector('.splash-content .label')
-  const welcomeEl = document.querySelector('.splash-content h1')
-  const hintEl = document.querySelector('.splash-hint')
-  if (labelEl) labelEl.textContent = t('splashLabel')
-  if (welcomeEl) welcomeEl.textContent = t('splashWelcome')
-  if (hintEl) hintEl.textContent = t('splashHint')
-  getEventInfo().then(info => {
-    if (eventEl) eventEl.textContent = info['Event Name'] || t('heroTitle')
-    if (themeEl) themeEl.textContent = `"${info['Theme'] || 'The Great Physician Is In'}"`
-  }).catch(() => {})
+  try {
+    const eventEl = document.getElementById('splashEventName')
+    const themeEl = document.getElementById('splashTheme')
+    const labelEl = document.querySelector('.splash-content .label')
+    const welcomeEl = document.querySelector('.splash-content h1')
+    const hintEl = document.querySelector('.splash-hint')
+    if (labelEl) labelEl.textContent = t('splashLabel')
+    if (welcomeEl) welcomeEl.textContent = t('splashWelcome')
+    if (hintEl) hintEl.textContent = t('splashHint')
+    getEventInfo().then(info => {
+      if (eventEl) eventEl.textContent = info['Event Name'] || t('heroTitle')
+      if (themeEl) themeEl.textContent = `"${info['Theme'] || 'The Great Physician Is In'}"`
+    }).catch(() => {})
+  } catch (e) {}
 
   setTimeout(() => {
-    document.querySelector('.splash').style.transition = 'opacity 0.4s'
-    document.querySelector('.splash').style.opacity = '0'
+    try {
+      const s = document.querySelector('.splash')
+      if (s) { s.style.transition = 'opacity 0.4s'; s.style.opacity = '0' }
+    } catch (e) {}
     setTimeout(() => { window.location.href = 'home.html' }, 400)
   }, 1500)
 }
@@ -1126,6 +1131,7 @@ function addLangToggleUI() {
 
 // ===== INIT =====
 document.addEventListener('DOMContentLoaded', () => {
+  try {
   const overlay = document.getElementById('modalOverlay')
   if (overlay) overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal() })
 
@@ -1139,4 +1145,5 @@ document.addEventListener('DOMContentLoaded', () => {
   setupContactFab()
   addLangToggleUI()
   applyTranslations()
+  } catch (e) { console.error(e) }
 })
