@@ -1106,6 +1106,7 @@ function addLangToggleUI() {
 }
 
 // ===== COUNTDOWN =====
+function startCountdown() {
   const container = document.getElementById('countdownContainer')
   if (!container) return
 
