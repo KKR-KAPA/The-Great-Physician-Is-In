@@ -617,17 +617,18 @@ async function loadAnnouncements() {
 
     window.__announceData = list
     updateAnnounceBadge(list.length)
-    let html = '<div class="card announce-floating">'
-    html += '<h2 style="margin-bottom:16px">📢 Pengumuman</h2>'
-    html += '<div class="announce-list">'
+    let html = '<div class="announce-grid">'
     list.forEach((a, i) => {
-      html += `<div class="announce-list-item" onclick="openAnnounceModal(${i})">
-        <span class="announce-badge">${a.no}</span>
-        <span class="announce-list-title">${a.title}</span>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--gray)" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+      const preview = (a.content || '').replace(/\n/g, ' ').substring(0, 100)
+      html += `<div class="announce-card" onclick="openAnnounceModal(${i})">
+        <div class="announce-card-top">
+          <span class="announce-badge">${a.no}</span>
+          <div class="announce-title">${a.title}</div>
+        </div>
+        <div class="announce-preview">${preview}${(a.content || '').length > 100 ? '...' : ''}</div>
       </div>`
     })
-    html += '</div></div>'
+    html += '</div>'
     container.innerHTML = html
   } catch (e) {
     container.innerHTML = '<div class="card"><p style="color:#ef4444;font-size:13px">Gagal memuat pengumuman.</p></div>'
@@ -638,51 +639,6 @@ function openAnnounceModal(index) {
   const a = window.__announceData[index]
   if (!a) return
   openModal(`${a.no}. ${a.title}`, `<div style="font-size:14px;color:var(--gray);line-height:1.7;white-space:pre-line">${a.content}</div>`)
-}
-
-async function openAnnouncementsModal() {
-  const list = await getAnnouncements()
-  if (!list.length) return
-
-  window.__announceData = list
-  updateAnnounceBadge(list.length)
-
-  const overlay = document.getElementById('modalOverlay')
-  const header = document.querySelector('.modal-header')
-  const body = document.getElementById('modalBody')
-
-  if (header) header.style.display = 'none'
-
-  let itemsHTML = ''
-  list.forEach((a, i) => {
-    itemsHTML += `
-      <div onclick="closeModal();setTimeout(()=>openAnnounceModal(${i}),300)" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:14px;cursor:pointer;transition:all 0.2s" onmouseenter="this.style.background='var(--light-gray)'" onmouseleave="this.style.background='transparent'">
-        <span style="flex-shrink:0;width:28px;height:28px;border-radius:10px;background:var(--gold);color:white;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700">${a.no}</span>
-        <span style="flex:1;font-size:14px;font-weight:600;color:var(--primary);line-height:1.3">${a.title}</span>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--gray)" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
-      </div>`
-  })
-
-  body.innerHTML = `
-    <div class="speaker-modal-body">
-      <div class="sabat-hero">
-        <div style="width:48px;height:48px;border-radius:14px;background:var(--gold);display:flex;align-items:center;justify-content:center;margin:0 auto 16px">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 00-5-5.917V4a1 1 0 10-2 0v1.083A6 6 0 006 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0a3 3 0 11-6 0m6 0H9"/></svg>
-        </div>
-        <h3 style="font-size:20px;font-weight:800;color:white;margin:0">Pengumuman</h3>
-        <p style="color:rgba(255,255,255,0.6);font-size:13px;margin-top:4px">${list.length} pengumuman</p>
-      </div>
-      <div style="padding:16px 20px 24px">
-        <div style="display:flex;flex-direction:column;gap:4px">${itemsHTML}</div>
-      </div>
-      <button class="speaker-modal-close" onclick="closeModal()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button>
-    </div>
-  `
-
-  overlay.classList.add('open')
-  document.body.style.overflow = 'hidden'
 }
 
 // ===== GALLERY =====
@@ -809,10 +765,10 @@ function initSplash() {
   }).catch(() => {})
 
   setTimeout(() => {
-    document.querySelector('.splash').style.transition = 'opacity 0.5s'
+    document.querySelector('.splash').style.transition = 'opacity 0.4s'
     document.querySelector('.splash').style.opacity = '0'
-    setTimeout(() => { window.location.href = 'home.html' }, 500)
-  }, 3500)
+    setTimeout(() => { window.location.href = 'home.html' }, 400)
+  }, 1500)
 }
 
 // ===== COUNTDOWN =====
