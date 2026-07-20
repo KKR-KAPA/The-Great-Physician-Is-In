@@ -102,6 +102,7 @@ const L10N = {
     youtubeCard: 'Saluran YouTube',
     youtubeSub: 'Tonton siaran secara langsung',
     youtubeBtn: 'Tonton Sekarang',
+    youtubeLive: 'Siaran Langsung',
   },
   en: {
     appTitle: 'KKR Kapa District',
@@ -191,6 +192,7 @@ const L10N = {
     youtubeCard: 'YouTube Channel',
     youtubeSub: 'Watch live streaming',
     youtubeBtn: 'Watch Now',
+    youtubeLive: 'Live Stream',
   }
 }
 
@@ -439,7 +441,10 @@ function setupContactFab() {
 }
 
 // ===== SPEAKER MODAL =====
-let speakerInfo = null
+let speakerInfo = {
+  name: 'Pr. Taehyung Kim',
+  bio: 'Pastor Kim Tae Hyung kini sedang melanjutkan pengajian di peringkat Doktor Pelayanan (Doctor of Ministry, D.Min.) di Adventist International Institute of Advanced Studies (AIIAS). Beliau kini memberi tumpuan kepada latihan misionari serta penyelidikan bagi menyiapkan disertasi kedoktorannya.',
+}
 
 function openSpeakerModal() {
   if (!speakerInfo) return
@@ -524,15 +529,15 @@ function openSabatModal() {
 async function loadEventInfo() {
   const container = document.getElementById('eventInfoContainer')
   if (!container) return
-  container.innerHTML = '<div class="loading-wrap"><div class="spinner"></div></div>'
+
+  const spkCard = document.getElementById('staticSpeakerCard')
+  if (spkCard) spkCard.onclick = openSpeakerModal
+
   try {
     const info = await getEventInfo()
-    container.innerHTML = ''
 
-    speakerInfo = {
-      name: info['Main Speaker'] || 'Pr. Taehyung Kim',
-      bio: 'Pastor Kim Tae Hyung kini sedang melanjutkan pengajian di peringkat Doktor Pelayanan (Doctor of Ministry, D.Min.) di Adventist International Institute of Advanced Studies (AIIAS). Beliau kini memberi tumpuan kepada latihan misionari serta penyelidikan bagi menyiapkan disertasi kedoktorannya.',
-    }
+    const spkName = document.querySelector('#staticSpeakerCard .speaker-name')
+    if (spkName) spkName.textContent = info['Main Speaker'] || 'Pr. Taehyung Kim'
 
     const heroDates = document.getElementById('heroDates')
     const heroVenue = document.getElementById('heroVenue')
@@ -543,51 +548,8 @@ async function loadEventInfo() {
       const div = document.createElement('div')
       div.className = 'banner-wrap'
       div.innerHTML = `<img src="${info['Banner Image']}" alt="Banner" onerror="this.style.display='none'">`
-      container.appendChild(div)
+      container.insertBefore(div, container.firstChild)
     }
-
-    const spk = document.createElement('div')
-    spk.className = 'card card-clickable'
-    spk.style.cursor = 'pointer'
-    spk.onclick = openSpeakerModal
-    spk.innerHTML = `
-      <h2 style="font-size:20px;margin-bottom:20px">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" style="vertical-align:middle;margin-right:8px">
-          <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/>
-          <path d="M19 10v2a7 7 0 01-14 0v-2"/>
-          <line x1="12" y1="19" x2="12" y2="23"/>
-          <line x1="8" y1="23" x2="16" y2="23"/>
-        </svg>
-        ${t('speakerRole')}
-      </h2>
-      <div class="speaker-card">
-        <img src="PrKim.jpeg" alt="Speaker" class="speaker-img" onerror="this.src='data:image/svg+xml,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'64\\' height=\\'64\\'><rect fill=\\'%23c8a24e\\' width=\\'64\\' height=\\'64\\' rx=\\'32\\'/><text x=\\'32\\' y=\\'38\\' text-anchor=\\'middle\\' fill=\\'white\\' font-size=\\'12\\' font-family=\\'sans-serif'>Pr</text></svg>'">
-        <div class="speaker-info" style="flex:1">
-          <div class="speaker-name">${info['Main Speaker'] || '-'}</div>
-          <div class="speaker-role">${t('speakerRole')}</div>
-          <div class="speaker-hint">${t('speakerHint')}</div>
-        </div>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
-      </div>`
-    container.appendChild(spk)
-
-    const ytCard = document.createElement('div')
-    ytCard.className = 'card'
-    ytCard.innerHTML = `
-      <div style="display:flex;align-items:center;gap:12px">
-        <div style="width:44px;height:44px;border-radius:12px;background:#c8a24e;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
-        </div>
-        <div style="flex:1">
-          <div style="font-weight:700;font-size:15px;color:var(--primary)">${t('youtubeCard')}</div>
-          <div style="font-size:12px;color:var(--gray);margin-top:2px">${t('youtubeSub')}</div>
-        </div>
-        <a href="https://youtube.com/@gerejasdakoporingan" target="_blank" rel="noopener noreferrer" class="livestream-link" style="flex-shrink:0">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-          ${t('youtubeBtn')}
-        </a>
-      </div>`
-    container.appendChild(ytCard)
 
     const statsBar = document.createElement('div')
     statsBar.id = 'statsContainer'
@@ -628,7 +590,7 @@ async function loadEventInfo() {
       </div>`
     container.appendChild(sabatCard)
   } catch (e) {
-    container.innerHTML = '<div class="card"><p style="color:#ef4444;font-size:13px">' + t('error') + '</p></div>'
+    // silent - static content already shows
   }
 }
 
