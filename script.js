@@ -247,16 +247,33 @@ async function getEventInfo() {
   return map
 }
 
-function getProgram() {
-  return window.__STATIC_PROGRAM || { days: [], slots: [] }
+async function getProgram() {
+  const rows = await fetchCSV(SHEETS.program)
+  if (rows.length < 2) return window.__STATIC_PROGRAM || { days: [], slots: [] }
+  const days = rows[0].slice(1).filter(Boolean)
+  const slots = rows.slice(1).filter(r => r[0]).map(r => {
+    const parts = r[0].split('\n')
+    return { role: parts[0].trim(), time: parts[1] ? parts[1].trim() : '', schedule: r.slice(1) }
+  })
+  return { days, slots }
 }
 
-function getPetugas() {
-  return window.__STATIC_PETUGAS || { days: [], roles: [] }
+async function getPetugas() {
+  const rows = await fetchCSV(SHEETS.petugas)
+  if (rows.length < 2) return window.__STATIC_PETUGAS || { days: [], roles: [] }
+  const days = rows[0].slice(1).filter(Boolean)
+  const roles = rows.slice(1).filter(r => r[0]).map(r => ({ role: r[0].trim(), assignments: r.slice(1) }))
+  return { days, roles }
 }
 
-function getAnnouncements() {
-  return window.__STATIC_ANNOUNCE || []
+async function getAnnouncements() {
+  const rows = await fetchCSV(SHEETS.announcements)
+  const list = []
+  for (let i = 1; i < rows.length; i++) {
+    if (rows[i][0]) list.push({ no: rows[i][0].trim(), title: (rows[i][1] || '').trim(), content: (rows[i][2] || '').trim() })
+  }
+  if (!list.length && window.__STATIC_ANNOUNCE) return window.__STATIC_ANNOUNCE
+  return list
 }
 
 function updateAnnounceBadge(count) {
@@ -598,11 +615,13 @@ async function loadEventInfo() {
 // ===== PROGRAM PAGE (Tabbed) =====
 let programData = null
 
-function loadProgram() {
+async function loadProgram() {
   const container = document.getElementById('programContainer')
   if (!container) return
-  programData = getProgram()
-  if (!programData.days.length) { container.innerHTML = '<div class="empty-state">' + t('noData') + '</div>'; return }
+  container.innerHTML = '<div class="loading-wrap"><div class="spinner"></div></div>'
+  try {
+    programData = await getProgram()
+    if (!programData.days.length) { container.innerHTML = '<div class="empty-state">' + t('noData') + '</div>'; return }
 
     let tabsHTML = '<div class="program-dates" id="programTabs">'
     const rawDates = programData.days
@@ -785,25 +804,29 @@ function renderAJK() {
   return html
 }
 
-function loadPetugas() {
+async function loadPetugas() {
   const container = document.getElementById('petugasContainer')
   if (!container) return
-  const data = getPetugas()
-  if (!data.days.length) { container.innerHTML = '<div class="empty-state">' + t('noData') + '</div>'; return }
-
-  let html = '<div class="petugas-grid">'
-  data.days.forEach((d, i) => {
-    html += `<div class="petugas-card" onclick="openPetugasModal(${i})">
-      <div>
-        <div class="day-label">${dayLabels()[i] || ''}</div>
-        <div class="day-date">${d}</div>
-      </div>
-      <div class="arrow">›</div>
-    </div>`
-  })
-  html += '</div>'
-  window.__petugasData = data
-  container.innerHTML = html + renderAJK()
+  container.innerHTML = '<div class="loading-wrap"><div class="spinner"></div></div>'
+  try {
+    const data = await getPetugas()
+    if (!data.days.length) { container.innerHTML = '<div class="empty-state">' + t('noData') + '</div>'; return }
+    let html = '<div class="petugas-grid">'
+    data.days.forEach((d, i) => {
+      html += `<div class="petugas-card" onclick="openPetugasModal(${i})">
+        <div>
+          <div class="day-label">${dayLabels()[i] || ''}</div>
+          <div class="day-date">${d}</div>
+        </div>
+        <div class="arrow">›</div>
+      </div>`
+    })
+    html += '</div>'
+    window.__petugasData = data
+    container.innerHTML = html + renderAJK()
+  } catch (e) {
+    container.innerHTML = '<div class="card" style="text-align:center;padding:24px"><p style="color:#ef4444;font-size:14px;font-weight:600;margin:0 0 8px">' + t('error') + '</p><button onclick="location.reload()" style="background:var(--gold);color:white;border:none;border-radius:20px;padding:8px 20px;font-size:13px;font-weight:700;cursor:pointer">Cuba Semula</button></div>'
+  }
 }
 
 function openPetugasModal(dayIndex) {
@@ -818,27 +841,31 @@ function openPetugasModal(dayIndex) {
 }
 
 // ===== ANNOUNCEMENTS =====
-function loadAnnouncements() {
+async function loadAnnouncements() {
   const container = document.getElementById('announceContainer')
   if (!container) return
-  const list = getAnnouncements()
-  if (!list.length) { container.innerHTML = '<div class="empty-state">' + t('noData') + '</div>'; return }
-
-  window.__announceData = list
-  updateAnnounceBadge(list.length)
-  let html = '<div class="announce-grid">'
-  list.forEach((a, i) => {
-    const preview = (a.content || '').replace(/\n/g, ' ').substring(0, 100)
-    html += `<div class="announce-card" onclick="openAnnounceModal(${i})">
-      <div class="announce-card-top">
-        <span class="announce-badge">${a.no}</span>
-        <div class="announce-title">${a.title}</div>
-      </div>
-      <div class="announce-preview">${preview}${(a.content || '').length > 100 ? '...' : ''}</div>
-    </div>`
-  })
-  html += '</div>'
-  container.innerHTML = html
+  container.innerHTML = '<div class="loading-wrap"><div class="spinner"></div></div>'
+  try {
+    const list = await getAnnouncements()
+    if (!list.length) { container.innerHTML = '<div class="empty-state">' + t('noData') + '</div>'; return }
+    window.__announceData = list
+    updateAnnounceBadge(list.length)
+    let html = '<div class="announce-grid">'
+    list.forEach((a, i) => {
+      const preview = (a.content || '').replace(/\n/g, ' ').substring(0, 100)
+      html += `<div class="announce-card" onclick="openAnnounceModal(${i})">
+        <div class="announce-card-top">
+          <span class="announce-badge">${a.no}</span>
+          <div class="announce-title">${a.title}</div>
+        </div>
+        <div class="announce-preview">${preview}${(a.content || '').length > 100 ? '...' : ''}</div>
+      </div>`
+    })
+    html += '</div>'
+    container.innerHTML = html
+  } catch (e) {
+    container.innerHTML = '<div class="card" style="text-align:center;padding:24px"><p style="color:#ef4444;font-size:14px;font-weight:600;margin:0 0 8px">' + t('error') + '</p><button onclick="location.reload()" style="background:var(--gold);color:white;border:none;border-radius:20px;padding:8px 20px;font-size:13px;font-weight:700;cursor:pointer">Cuba Semula</button></div>'
+  }
 }
 
 function openAnnounceModal(index) {
