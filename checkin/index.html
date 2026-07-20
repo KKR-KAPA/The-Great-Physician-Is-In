@@ -313,6 +313,7 @@ document.getElementById('attendanceForm').addEventListener('submit', async funct
 
   if (!isDuplicate) {
     localStorage.setItem(USER_KEY, JSON.stringify({ name, church, bilangan }))
+    localStorage.setItem('kkr_checkin_pending', '1')
     try {
       await fetch(APPS_SCRIPT_URL, {
         method: 'POST',

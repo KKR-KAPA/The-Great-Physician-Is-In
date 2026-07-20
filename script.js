@@ -324,6 +324,13 @@ async function renderStats() {
   const stats = await getAttendanceStats()
   if (!stats) return
 
+  try {
+    if (localStorage.getItem('kkr_checkin_pending') === '1') {
+      stats.today += 1
+      localStorage.removeItem('kkr_checkin_pending')
+    }
+  } catch (e) {}
+
   if (msiaDate > end) {
     container.innerHTML = `<div class="stat-card" style="width:100%"><span class="stat-number">${stats.total}</span><span class="stat-label">${t('statsTotal')}</span></div>`
     return
