@@ -582,7 +582,7 @@ async function loadEventInfo() {
           <div style="font-weight:700;font-size:15px;color:var(--primary)">${t('youtubeCard')}</div>
           <div style="font-size:12px;color:var(--gray);margin-top:2px">${t('youtubeSub')}</div>
         </div>
-        <a href="https://youtube.com/@gerejasdakoporingan?si=VdP7JfRKLpuSXBBL" target="_blank" rel="noopener noreferrer" class="livestream-link" style="flex-shrink:0">
+        <a href="https://youtube.com/@gerejasdakoporingan" target="_blank" rel="noopener noreferrer" class="livestream-link" style="flex-shrink:0">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
           ${t('youtubeBtn')}
         </a>
