@@ -94,6 +94,14 @@ const L10N = {
     petugasModalTitle: 'Senarai Petugas',
     rolePetugas: 'Petugas',
     noData: 'Tiada data.',
+    albumTitle: 'Album',
+    albumDay: 'Hari',
+    albumEmpty: 'Tiada foto buat masa ini',
+    albumLoading: 'Memuatkan...',
+    albumError: 'Gagal memuat album.',
+    youtubeCard: 'Saluran YouTube',
+    youtubeSub: 'Tonton siaran secara langsung',
+    youtubeBtn: 'Tonton Sekarang',
   },
   en: {
     appTitle: 'KKR Kapa District',
@@ -175,6 +183,14 @@ const L10N = {
     petugasModalTitle: 'Worker List',
     rolePetugas: 'Worker',
     noData: 'No data.',
+    albumTitle: 'Album',
+    albumDay: 'Day',
+    albumEmpty: 'No photos yet',
+    albumLoading: 'Loading...',
+    albumError: 'Failed to load album.',
+    youtubeCard: 'YouTube Channel',
+    youtubeSub: 'Watch live streaming',
+    youtubeBtn: 'Watch Now',
   }
 }
 
@@ -593,6 +609,22 @@ async function loadEventInfo() {
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
       </div>`
     container.appendChild(sabatCard)
+
+    const ytCard = document.createElement('div')
+    ytCard.className = 'card'
+    ytCard.innerHTML = `
+      <h2 style="font-size:20px;margin-bottom:20px">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="#c8a24e" style="vertical-align:middle;margin-right:8px">
+          <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+        </svg>
+        ${t('youtubeCard')}
+      </h2>
+      <p style="font-size:13px;color:var(--gray);margin-bottom:16px">${t('youtubeSub')}</p>
+      <a href="https://youtube.com/@gerejasdakoporingan?si=VdP7JfRKLpuSXBBL" target="_blank" rel="noopener noreferrer" class="livestream-link">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        ${t('youtubeBtn')}
+      </a>`
+    container.appendChild(ytCard)
   } catch (e) {
     container.innerHTML = '<div class="card"><p style="color:#ef4444;font-size:13px">' + t('error') + '</p></div>'
   }
@@ -938,7 +970,19 @@ function loadGallery() {
     </div>`
   })
   html += '</div>'
+
+  html += '<div class="card" style="margin-top:20px">'
+  html += `<h2 style="font-size:20px;margin-bottom:16px">📸 ${t('albumTitle')}</h2>`
+  html += '<div class="album-tabs" id="albumTabs">'
+  for (let d = 1; d <= 5; d++) {
+    html += `<button class="album-tab" data-day="${d}" onclick="loadAlbumDay(${d})">${t('albumDay')} ${d}</button>`
+  }
+  html += '</div><div id="albumGrid" class="album-grid"><p style="color:var(--gray);font-size:13px;text-align:center;padding:20px 0">${t('albumEmpty')}</p></div>'
+  html += '</div>'
+
   container.innerHTML = html
+
+  loadAlbumDay(1)
 
   GALLERY_SONGS.forEach((_, i) => {
     const audio = document.getElementById(`audio${i}`)
@@ -957,6 +1001,45 @@ function loadGallery() {
       currentSong = -1
     })
   })
+}
+
+async function loadAlbumDay(day) {
+  const grid = document.getElementById('albumGrid')
+  if (!grid) return
+  grid.innerHTML = '<div class="loading-wrap"><div class="spinner"></div></div>'
+
+  document.querySelectorAll('.album-tab').forEach(t => t.classList.toggle('active', parseInt(t.dataset.day) === day))
+
+  try {
+    const repo = 'kkr-kapa/The-Great-Physician-Is-In'
+    const path = `Album/Day%20${day}`
+    const res = await fetch(`https://api.github.com/repos/${repo}/contents/${path}`)
+    if (!res.ok) { grid.innerHTML = `<p style="color:var(--gray);font-size:13px;text-align:center;padding:20px 0">${t('albumEmpty')}</p>`; return }
+    const files = await res.json()
+    const images = files.filter(f => /\.(jpg|jpeg|png|gif|webp)$/i.test(f.name))
+    if (!images.length) { grid.innerHTML = `<p style="color:var(--gray);font-size:13px;text-align:center;padding:20px 0">${t('albumEmpty')}</p>`; return }
+    let html = ''
+    images.forEach(img => {
+      html += `<div class="album-photo-wrap"><img src="${img.download_url}" alt="${img.name}" class="album-photo" loading="lazy" onclick="openLightbox('${img.download_url}')"></div>`
+    })
+    grid.innerHTML = html
+  } catch (e) {
+    grid.innerHTML = `<p style="color:var(--gray);font-size:13px;text-align:center;padding:20px 0">${t('albumError')}</p>`
+  }
+}
+
+function openLightbox(src) {
+  const overlay = document.getElementById('modalOverlay')
+  const header = document.querySelector('.modal-header')
+  const body = document.getElementById('modalBody')
+  if (!overlay || !body) return
+  if (header) header.style.display = 'none'
+  body.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;min-height:60vh;padding:16px"><img src="${src}" style="max-width:100%;max-height:80vh;border-radius:16px;object-fit:contain" onclick="event.stopPropagation()"></div>
+    <button class="speaker-modal-close" onclick="closeModal()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>`
+  overlay.classList.add('open')
+  document.body.style.overflow = 'hidden'
 }
 
 function togglePlay(index) {
