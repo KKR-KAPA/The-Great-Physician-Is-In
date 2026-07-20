@@ -94,15 +94,6 @@ const L10N = {
     petugasModalTitle: 'Senarai Petugas',
     rolePetugas: 'Petugas',
     noData: 'Tiada data.',
-    albumTitle: 'Album',
-    albumDay: 'Hari',
-    albumEmpty: 'Tiada foto buat masa ini',
-    albumLoading: 'Memuatkan...',
-    albumError: 'Gagal memuat album.',
-    youtubeCard: 'Saluran YouTube',
-    youtubeSub: 'Tonton siaran secara langsung',
-    youtubeBtn: 'Tonton Sekarang',
-    youtubeLive: 'Siaran Langsung',
   },
   en: {
     appTitle: 'KKR Kapa District',
@@ -184,15 +175,6 @@ const L10N = {
     petugasModalTitle: 'Worker List',
     rolePetugas: 'Worker',
     noData: 'No data.',
-    albumTitle: 'Album',
-    albumDay: 'Day',
-    albumEmpty: 'No photos yet',
-    albumLoading: 'Loading...',
-    albumError: 'Failed to load album.',
-    youtubeCard: 'YouTube Channel',
-    youtubeSub: 'Watch live streaming',
-    youtubeBtn: 'Watch Now',
-    youtubeLive: 'Live Stream',
   }
 }
 
@@ -234,21 +216,9 @@ function parseCSV(text) {
   return rows
 }
 
-async function fetchCSV(url, attempt = 1) {
-  try {
-    const ctrl = new AbortController()
-    const tid = setTimeout(() => ctrl.abort(), attempt === 1 ? 8000 : 12000)
-    const res = await fetch(url, { signal: ctrl.signal })
-    clearTimeout(tid)
-    if (!res.ok) throw new Error('HTTP ' + res.status)
-    return parseCSV(await res.text())
-  } catch (e) {
-    if (attempt < 3) {
-      await new Promise(r => setTimeout(r, attempt * 1500))
-      return fetchCSV(url, attempt + 1)
-    }
-    throw e
-  }
+async function fetchCSV(url) {
+  const res = await fetch(url, { cache: 'no-store' })
+  return parseCSV(await res.text())
 }
 
 // ===== DATA FETCHERS =====
@@ -305,12 +275,8 @@ async function loadBadge() {
 /* ── Get today's date in Malaysia time (UTC+8) ── */
 function getTodayMsia() {
   const now = new Date()
-  const msiaOffset = 8 * 60
-  const localOffset = now.getTimezoneOffset()
-  const diff = msiaOffset + localOffset
-  const msia = new Date(now.getTime() + diff * 60000)
-  const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
-  return msia.getDate() + ' ' + months[msia.getMonth()] + ' ' + msia.getFullYear()
+  const msia = new Date(now.getTime() + 8 * 3600000)
+  return msia.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })
 }
 
 /* ── Attendance stats ── */
@@ -350,10 +316,7 @@ async function renderStats() {
   }
 
   const stats = await getAttendanceStats()
-  if (!stats) {
-    container.innerHTML = '<div class="stat-card" style="width:100%;text-align:center"><span class="stat-label">' + t('error') + '</span></div>'
-    return
-  }
+  if (!stats) return
 
   if (msiaDate > end) {
     container.innerHTML = `<div class="stat-card" style="width:100%"><span class="stat-number">${stats.total}</span><span class="stat-label">${t('statsTotal')}</span></div>`
@@ -381,15 +344,10 @@ async function renderAttendanceGraph() {
     }
     const max = Math.max(...Object.values(dayMap), 1)
     const dayNames = [t('daySun') || 'Ahad', t('dayMon'), t('dayTue'), t('dayWed'), t('dayThu'), t('dayFri'), t('daySat')]
-    const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December']
     let html = '<div class="graph-body">'
     dates.forEach((d, i) => {
-      const dp = d.split(' ')
-      const dn = parseInt(dp[0], 10)
-      const dm = MONTHS.indexOf(dp[1])
-      const dy = parseInt(dp[2], 10) || 2026
-      const dayObj = dm > -1 ? new Date(dy, dm, dn) : new Date(d)
-      const label = !isNaN(dayObj.getTime()) ? dayNames[dayObj.getDay()] : d.split(' ')[0] || d
+      const day = new Date(d)
+      const label = !isNaN(day.getTime()) ? dayNames[day.getDay()] : d.split(' ')[0] || d
       const pct = (dayMap[d] / max) * 100
       html += `
         <div class="graph-row">
@@ -454,9 +412,9 @@ function setupContactFab() {
       const contact = info['Contact'] || 'Pihak KKR'
       const raw = info['Whatsapp Number'] || ''
       const phone = raw.replace(/[^0-9]/g, '')
-      waBtn.href = phone
-        ? `https://wa.me/${phone}?text=Hai%20${encodeURIComponent(contact)}%2C%20saya%20ada%20soalan%20berkaitan%20KKR.`
-        : 'https://wa.me/?text=Hai%20Pihak%20KKR'
+      if (phone) {
+        waBtn.href = `https://wa.me/${phone}?text=Hai%20${encodeURIComponent(contact)}%2C%20saya%20ada%20soalan%20berkaitan%20KKR.`
+      }
     }
     if (formBtn) {
       formBtn.href = info['Google Form Link'] || 'https://forms.gle/P8ZvxiimCh8nDJnq5'
@@ -465,10 +423,7 @@ function setupContactFab() {
 }
 
 // ===== SPEAKER MODAL =====
-let speakerInfo = {
-  name: 'Pr. Taehyung Kim',
-  bio: 'Pastor Kim Tae Hyung kini sedang melanjutkan pengajian di peringkat Doktor Pelayanan (Doctor of Ministry, D.Min.) di Adventist International Institute of Advanced Studies (AIIAS). Beliau kini memberi tumpuan kepada latihan misionari serta penyelidikan bagi menyiapkan disertasi kedoktorannya.',
-}
+let speakerInfo = null
 
 function openSpeakerModal() {
   if (!speakerInfo) return
@@ -553,18 +508,15 @@ function openSabatModal() {
 async function loadEventInfo() {
   const container = document.getElementById('eventInfoContainer')
   if (!container) return
-
-  const spkCard = document.getElementById('staticSpeakerCard')
-  if (spkCard) spkCard.onclick = openSpeakerModal
-
-  const staticSabat = document.getElementById('sabatStaticCard')
-  if (staticSabat) staticSabat.remove()
-
+  container.innerHTML = '<div class="loading-wrap"><div class="spinner"></div></div>'
   try {
     const info = await getEventInfo()
+    container.innerHTML = ''
 
-    const spkName = document.querySelector('#staticSpeakerCard .speaker-name')
-    if (spkName) spkName.textContent = info['Main Speaker'] || 'Pr. Taehyung Kim'
+    speakerInfo = {
+      name: info['Main Speaker'] || 'Pr. Taehyung Kim',
+      bio: 'Pastor Kim Tae Hyung kini sedang melanjutkan pengajian di peringkat Doktor Pelayanan (Doctor of Ministry, D.Min.) di Adventist International Institute of Advanced Studies (AIIAS). Beliau kini memberi tumpuan kepada latihan misionari serta penyelidikan bagi menyiapkan disertasi kedoktorannya.',
+    }
 
     const heroDates = document.getElementById('heroDates')
     const heroVenue = document.getElementById('heroVenue')
@@ -575,8 +527,45 @@ async function loadEventInfo() {
       const div = document.createElement('div')
       div.className = 'banner-wrap'
       div.innerHTML = `<img src="${info['Banner Image']}" alt="Banner" onerror="this.style.display='none'">`
-      container.insertBefore(div, container.firstChild)
+      container.appendChild(div)
     }
+
+    const spk = document.createElement('div')
+    spk.className = 'card card-clickable'
+    spk.style.cursor = 'pointer'
+    spk.onclick = openSpeakerModal
+    spk.innerHTML = `
+      <h2 style="font-size:20px;margin-bottom:20px">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" style="vertical-align:middle;margin-right:8px">
+          <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/>
+          <path d="M19 10v2a7 7 0 01-14 0v-2"/>
+          <line x1="12" y1="19" x2="12" y2="23"/>
+          <line x1="8" y1="23" x2="16" y2="23"/>
+        </svg>
+        ${t('speakerRole')}
+      </h2>
+      <div class="speaker-card">
+        <img src="PrKim.jpeg" alt="Speaker" class="speaker-img" onerror="this.src='data:image/svg+xml,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'64\\' height=\\'64\\'><rect fill=\\'%23c8a24e\\' width=\\'64\\' height=\\'64\\' rx=\\'32\\'/><text x=\\'32\\' y=\\'38\\' text-anchor=\\'middle\\' fill=\\'white\\' font-size=\\'12\\' font-family=\\'sans-serif'>Pr</text></svg>'">
+        <div class="speaker-info" style="flex:1">
+          <div class="speaker-name">${info['Main Speaker'] || '-'}</div>
+          <div class="speaker-role">${t('speakerRole')}</div>
+          <div class="speaker-hint">${t('speakerHint')}</div>
+        </div>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
+      </div>`
+    container.appendChild(spk)
+
+    const statsBar = document.createElement('div')
+    statsBar.id = 'statsContainer'
+    statsBar.className = 'stats-bar'
+    container.appendChild(statsBar)
+    renderStats()
+
+    const graphCard = document.createElement('div')
+    graphCard.className = 'card'
+    graphCard.innerHTML = `<h2 style="font-size:20px;margin-bottom:16px">📊 ${t('graphTitle')}</h2><div id="attendanceGraph"><div class="loading-wrap"><div class="spinner"></div></div></div>`
+    container.appendChild(graphCard)
+    renderAttendanceGraph()
 
     if (info['Livestream']) {
       const ls = document.createElement('div')
@@ -587,39 +576,26 @@ async function loadEventInfo() {
       </a>`
       container.appendChild(ls)
     }
+
+    const sabatCard = document.createElement('div')
+    sabatCard.className = 'card card-clickable'
+    sabatCard.style.cursor = 'pointer'
+    sabatCard.onclick = openSabatModal
+    sabatCard.innerHTML = `
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--gold),#a8852e);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        </div>
+        <div style="flex:1">
+          <div style="font-weight:700;font-size:15px;color:var(--primary)">${t('sabatTitle')}</div>
+          <div style="font-size:12px;color:var(--gray);margin-top:2px">25 Julai 2026 · ${t('sabatVenue')}</div>
+        </div>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
+      </div>`
+    container.appendChild(sabatCard)
   } catch (e) {
-    // silent
+    container.innerHTML = '<div class="card"><p style="color:#ef4444;font-size:13px">' + t('error') + '</p></div>'
   }
-
-  // Always render stats + graph + sabat (don't depend on event info sheet)
-  const statsBar = document.createElement('div')
-  statsBar.id = 'statsContainer'
-  statsBar.className = 'stats-bar'
-  container.appendChild(statsBar)
-  renderStats()
-
-  const graphCard = document.createElement('div')
-  graphCard.className = 'card'
-  graphCard.innerHTML = `<h2 style="font-size:20px;margin-bottom:16px">📊 ${t('graphTitle')}</h2><div id="attendanceGraph"><div class="loading-wrap"><div class="spinner"></div></div></div>`
-  container.appendChild(graphCard)
-  renderAttendanceGraph()
-
-  const sabatCard = document.createElement('div')
-  sabatCard.className = 'card card-clickable'
-  sabatCard.style.cursor = 'pointer'
-  sabatCard.onclick = openSabatModal
-  sabatCard.innerHTML = `
-    <div style="display:flex;align-items:center;gap:12px">
-      <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--gold),#a8852e);display:flex;align-items:center;justify-content:center;flex-shrink:0">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
-      </div>
-      <div style="flex:1">
-        <div style="font-weight:700;font-size:15px;color:var(--primary)">${t('sabatTitle')}</div>
-        <div style="font-size:12px;color:var(--gray);margin-top:2px">25 Julai 2026 · ${t('sabatVenue')}</div>
-      </div>
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
-    </div>`
-  container.appendChild(sabatCard)
 }
 
 // ===== PROGRAM PAGE (Tabbed) =====
@@ -665,7 +641,7 @@ async function loadProgram() {
     } catch (e) {}
     selectProgramDay(defaultDay)
   } catch (e) {
-    container.innerHTML = '<div class="card" style="text-align:center;padding:24px"><p style="color:#ef4444;font-size:14px;font-weight:600;margin:0 0 8px">' + t('error') + '</p><button onclick="location.reload()" style="background:var(--gold);color:white;border:none;border-radius:20px;padding:8px 20px;font-size:13px;font-weight:700;cursor:pointer">Cuba Semula</button></div>'
+    container.innerHTML = '<div class="card"><p style="color:#ef4444;font-size:13px">' + t('error') + '</p></div>'
   }
 }
 
@@ -836,7 +812,7 @@ async function loadPetugas() {
     window.__petugasData = data
     container.innerHTML = html + renderAJK()
   } catch (e) {
-    container.innerHTML = '<div class="card" style="text-align:center;padding:24px"><p style="color:#ef4444;font-size:14px;font-weight:600;margin:0 0 8px">' + t('error') + '</p><button onclick="location.reload()" style="background:var(--gold);color:white;border:none;border-radius:20px;padding:8px 20px;font-size:13px;font-weight:700;cursor:pointer">Cuba Semula</button></div>'
+    container.innerHTML = '<div class="card"><p style="color:#ef4444;font-size:13px">' + t('error') + '</p></div>'
   }
 }
 
@@ -876,7 +852,7 @@ async function loadAnnouncements() {
     html += '</div>'
     container.innerHTML = html
   } catch (e) {
-    container.innerHTML = '<div class="card" style="text-align:center;padding:24px"><p style="color:#ef4444;font-size:14px;font-weight:600;margin:0 0 8px">' + t('error') + '</p><button onclick="location.reload()" style="background:var(--gold);color:white;border:none;border-radius:20px;padding:8px 20px;font-size:13px;font-weight:700;cursor:pointer">Cuba Semula</button></div>'
+    container.innerHTML = '<div class="card"><p style="color:#ef4444;font-size:13px">' + t('error') + '</p></div>'
   }
 }
 
@@ -962,19 +938,7 @@ function loadGallery() {
     </div>`
   })
   html += '</div>'
-
-  html += '<div class="card" style="margin-top:20px">'
-  html += `<h2 style="font-size:20px;margin-bottom:16px">📸 ${t('albumTitle')}</h2>`
-  html += '<div class="album-tabs" id="albumTabs">'
-  for (let d = 1; d <= 5; d++) {
-    html += `<button class="album-tab" data-day="${d}" onclick="loadAlbumDay(${d})">${t('albumDay')} ${d}</button>`
-  }
-  html += '</div><div id="albumGrid" class="album-grid"><p style="color:var(--gray);font-size:13px;text-align:center;padding:20px 0">${t('albumEmpty')}</p></div>'
-  html += '</div>'
-
   container.innerHTML = html
-
-  loadAlbumDay(1)
 
   GALLERY_SONGS.forEach((_, i) => {
     const audio = document.getElementById(`audio${i}`)
@@ -993,45 +957,6 @@ function loadGallery() {
       currentSong = -1
     })
   })
-}
-
-async function loadAlbumDay(day) {
-  const grid = document.getElementById('albumGrid')
-  if (!grid) return
-  grid.innerHTML = '<div class="loading-wrap"><div class="spinner"></div></div>'
-
-  document.querySelectorAll('.album-tab').forEach(t => t.classList.toggle('active', parseInt(t.dataset.day) === day))
-
-  try {
-    const repo = 'kkr-kapa/The-Great-Physician-Is-In'
-    const path = `Album/Day%20${day}`
-    const res = await fetch(`https://api.github.com/repos/${repo}/contents/${path}`)
-    if (!res.ok) { grid.innerHTML = `<p style="color:var(--gray);font-size:13px;text-align:center;padding:20px 0">${t('albumEmpty')}</p>`; return }
-    const files = await res.json()
-    const images = files.filter(f => /\.(jpg|jpeg|png|gif|webp)$/i.test(f.name))
-    if (!images.length) { grid.innerHTML = `<p style="color:var(--gray);font-size:13px;text-align:center;padding:20px 0">${t('albumEmpty')}</p>`; return }
-    let html = ''
-    images.forEach(img => {
-      html += `<div class="album-photo-wrap"><img src="${img.download_url}" alt="${img.name}" class="album-photo" loading="lazy" onclick="openLightbox('${img.download_url}')"></div>`
-    })
-    grid.innerHTML = html
-  } catch (e) {
-    grid.innerHTML = `<p style="color:var(--gray);font-size:13px;text-align:center;padding:20px 0">${t('albumError')}</p>`
-  }
-}
-
-function openLightbox(src) {
-  const overlay = document.getElementById('modalOverlay')
-  const header = document.querySelector('.modal-header')
-  const body = document.getElementById('modalBody')
-  if (!overlay || !body) return
-  if (header) header.style.display = 'none'
-  body.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;min-height:60vh;padding:16px"><img src="${src}" style="max-width:100%;max-height:80vh;border-radius:16px;object-fit:contain" onclick="event.stopPropagation()"></div>
-    <button class="speaker-modal-close" onclick="closeModal()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-    </button>`
-  overlay.classList.add('open')
-  document.body.style.overflow = 'hidden'
 }
 
 function togglePlay(index) {
@@ -1100,7 +1025,7 @@ function initSplash() {
 
 // ===== LANGUAGE UI =====
 function applyTranslations() {
-  const langToggle = document.getElementById('langToggle') || document.querySelector('.lang-pill')
+  const langToggle = document.getElementById('langToggle')
   if (langToggle) langToggle.textContent = lang === 'ms' ? 'EN' : 'BM'
 
   document.querySelectorAll('[data-i18n]').forEach(el => {
@@ -1158,7 +1083,6 @@ function applyTranslations() {
 }
 
 function addLangToggleUI() {
-  if (document.querySelector('.lang-pill')) return
   let header = document.querySelector('.page-header .header-inner') || document.querySelector('.home-hero .header-inner')
   if (!header) {
     const pageHeader = document.querySelector('.page-header')

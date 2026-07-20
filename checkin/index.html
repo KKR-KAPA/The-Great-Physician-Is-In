@@ -296,7 +296,7 @@ document.getElementById('attendanceForm').addEventListener('submit', async funct
   let isDuplicate = false
 
   try {
-    const res = await fetch(ATTENDANCE_SHEET)
+    const res = await fetch(ATTENDANCE_SHEET, { cache: 'no-store' })
     const rows = parseCSV(await res.text())
     isDuplicate = rows.slice(1).some(r => {
       const rowDay = (r[1] || '').trim()

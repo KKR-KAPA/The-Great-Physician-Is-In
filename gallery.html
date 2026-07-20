@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <title>Galeri - KKR Kapa 2026</title>
   <meta property="og:title" content="Galeri - KKR Daerah Kapa 2026">
-  <meta property="og:description" content="KEBAKTIAN KEBANGUNAN ROHANI Daerah Kapa · 20-25 Julai 2026">
+  <meta property="og:description" content="KEBAKTIAN KEBANGUNAN ROHANI Daerah Kapa · 20-26 Julai 2026">
   <meta property="og:image" content="https://kkr-kapa.github.io/The-Great-Physician-Is-In/thumbnail.png">
   <meta property="og:url" content="https://kkr-kapa.github.io/The-Great-Physician-Is-In/gallery.html">
   <meta property="og:type" content="website">
@@ -17,54 +17,11 @@
     <div class="subtitle">KKR Daerah Kapa</div>
     <h1 data-i18n="galleryTitle">Galeri</h1>
     <div class="desc" data-i18n="galleryDesc">Lagu tema dan media KKR 2026</div>
-    <div onclick="toggleLang()" class="lang-pill">BM</div>
   </div>
 
   <div class="page-content">
     <div class="banner-wrap"><img src="Banner.jpeg" alt="Banner" loading="lazy" onerror="this.style.display='none'"></div>
-    <div id="galleryContainer">
-      <!-- STATIC MP3 PLAYER + LYRICS (fallback if JS fails) -->
-      <div class="gallery-list">
-        <div class="gallery-card">
-          <div class="gallery-card-header">
-            <div class="gallery-icon"><svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div>
-            <div class="gallery-meta">
-              <div class="gallery-title">Tabib Besar Ada Dekat</div>
-              <div class="gallery-artist">LPMI</div>
-            </div>
-          </div>
-          <div class="gallery-controls">
-            <button class="gallery-play-btn" onclick="document.getElementById('audioStatic').paused?document.getElementById('audioStatic').play():document.getElementById('audioStatic').pause()">
-              <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-            </button>
-            <div class="gallery-progress"><div class="gallery-progress-fill" style="width:0%" id="progressStatic"></div></div>
-            <span class="gallery-time" id="timeStatic">0:00</span>
-            <audio id="audioStatic" preload="none" src="LPMI-69-TABIB-BESAR-ADA-DEKAT.mp3"></audio>
-          </div>
-          <div style="display:flex;gap:8px;margin-top:8px">
-            <button class="lirik-toggle" id="lirikBtnStatic" onclick="var e=document.getElementById('lirikStatic');e.style.display=e.style.display==='none'||!e.style.display?'block':'none';this.textContent=e.style.display==='block'?'Tutup Lirik':'📄 Lirik'">📄 Lirik</button>
-            <button class="lirik-toggle" id="lirikEnBtnStatic" onclick="var e=document.getElementById('lirikEnStatic');e.style.display=e.style.display==='none'||!e.style.display?'block':'none';this.textContent=e.style.display==='block'?'Tutup English Lyrics':'📄 English Lyrics'">📄 English Lyrics</button>
-          </div>
-          <div class="lirik-content" id="lirikStatic" style="display:none">
-            <div class="lirik-body">(1)<br>Tabib besar ada dekat,<br>Yesus yang berkasihan;<br>Hai orang yang berhati brat,<br>Dengarlah suara Tuhan.<br><br><strong>Korus</strong><br>Lagu yang amat merdu<br>Bagi syurga dan dunia<br>Nyanyian amat merdu:<br>Nama Tuhan Yesus.<br><br>(2)<br>Ketakutan dihapuskan<br>Oleh namanya Yesus;<br>Aku rindulah dengarkan<br>Nama Yesus yang indah<br><br>(3)<br>Hormati dan puji Domba<br>Yang mati ganti kita;<br>Betapa manis bunyinya<br>Khabar slamat yang indah.<br><br>(4)<br>Bila nanti Tuhan datang,<br>Kita akan ke syurga;<br>Di sana kita slalu snang<br>Dan memakai mahkota.</div>
-          </div>
-          <div class="lirik-content" id="lirikEnStatic" style="display:none">
-            <div class="lirik-body">(1)<br>The Great Physician now is near,<br>The sympathizing Jesus;<br>He speaks the drooping heart to cheer,<br>Oh, hear the voice of Jesus.<br><br><strong>Refrain</strong><br>Sweetest note in seraph song,<br>Sweetest name on mortal tongue;<br>Sweetest carol ever sung:<br>Jesus, blessed Jesus.<br><br>(2)<br>Your many sins are all forgiven,<br>Oh, hear the voice of Jesus;<br>Go on your way in peace to heaven,<br>And wear a crown with Jesus.<br><br>(3)<br>Come, weary sinner, see your need,<br>And trust the love of Jesus;<br>In Him you have a friend indeed,<br>He'll give you peace with Jesus.<br><br>(4)<br>And when to death's dark vale you come,<br>And think of seeing Jesus,<br>His presence still shall cheer your gloom,<br>The bliss of heaven with Jesus.</div>
-          </div>
-        </div>
-      </div>
-      <div class="card" style="margin-top:20px">
-        <h2 style="font-size:20px;margin-bottom:16px" data-i18n="albumTitle">📸 Album</h2>
-        <div class="album-tabs" id="albumTabs">
-          <button class="album-tab active" onclick="location.href='https://github.com/kkr-kapa/The-Great-Physician-Is-In/tree/main/Album/Day%201'">Hari 1</button>
-          <button class="album-tab" onclick="location.href='https://github.com/kkr-kapa/The-Great-Physician-Is-In/tree/main/Album/Day%202'">Hari 2</button>
-          <button class="album-tab" onclick="location.href='https://github.com/kkr-kapa/The-Great-Physician-Is-In/tree/main/Album/Day%203'">Hari 3</button>
-          <button class="album-tab" onclick="location.href='https://github.com/kkr-kapa/The-Great-Physician-Is-In/tree/main/Album/Day%204'">Hari 4</button>
-          <button class="album-tab" onclick="location.href='https://github.com/kkr-kapa/The-Great-Physician-Is-In/tree/main/Album/Day%205'">Hari 5</button>
-        </div>
-        <div id="albumGrid" class="album-grid"><p style="color:var(--gray);font-size:13px;text-align:center;padding:20px 0">Tiada foto buat masa ini</p></div>
-      </div>
-    </div>
+    <div id="galleryContainer"></div>
   </div>
 
   <nav class="bottom-nav">
@@ -94,11 +51,11 @@
     <!-- Contact FAB -->
   <div class="contact-fab" id="contactFab">
     <div class="fab-options">
-      <a id="formOption" href="https://forms.gle/P8ZvxiimCh8nDJnq5" target="_blank" rel="noopener noreferrer" class="fab-option fab-form">
+      <a id="formOption" href="#" target="_blank" rel="noopener noreferrer" class="fab-option fab-form">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
         <span>Borang Soalan</span>
       </a>
-      <a id="waOption" href="https://wa.me/60146536328?text=Hai%20Elder%20Sonny%20Tivon%2C%20saya%20ada%20soalan%20berkaitan%20KKR." target="_blank" rel="noopener noreferrer" class="fab-option fab-wa">
+      <a id="waOption" href="#" target="_blank" rel="noopener noreferrer" class="fab-option fab-wa">
         <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347"/></svg>
         <span>WhatsApp</span>
       </a>
@@ -120,16 +77,6 @@
     </div>
   </div>
 
-  <style>.lang-pill{position:absolute;right:16px;top:50%;transform:translateY(-50%);background:#c8a24e;color:white;border:none;border-radius:20px;padding:4px 14px;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:.5px;line-height:24px;z-index:10}.page-header{position:relative}</style>
-  <script>
-  (function(){try{var l=localStorage.getItem('kkr_lang')||'ms';var p=document.querySelector('.lang-pill');if(p)p.textContent=l==='ms'?'EN':'BM'}catch(e){}})()
-  function toggleLang(){var c='ms';try{c=localStorage.getItem('kkr_lang')||'ms'}catch(e){}var n=c==='ms'?'en':'ms';try{localStorage.setItem('kkr_lang',n)}catch(e){}location.reload()}
-  function toggleContactMenu(){var f=document.getElementById('contactFab');if(f)f.classList.toggle('open')}
-  function closeModal(){var o=document.getElementById('modalOverlay');if(o)o.classList.remove('open');document.body.style.overflow=''}
-  </script>
-  <script>
-  (function(){var a=document.getElementById('audioStatic'),p=document.getElementById('progressStatic'),t=document.getElementById('timeStatic');if(a&&p){a.addEventListener('timeupdate',function(){if(a.duration){p.style.width=(a.currentTime/a.duration)*100+'%'}});a.addEventListener('ended',function(){p.style.width='0%';if(t)t.textContent='0:00'});a.addEventListener('timeupdate',function(){if(t){var m=Math.floor(a.currentTime/60),s=Math.floor(a.currentTime%60);t.textContent=m+':'+(s<10?'0':'')+s}})}})()
-  </script>
   <script src="script.js"></script>
 </body>
 </html>
