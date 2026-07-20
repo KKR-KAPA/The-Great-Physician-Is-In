@@ -93,6 +93,9 @@ const L10N = {
     speakerModalTitle: 'Latar Belakang Pembicara',
     petugasModalTitle: 'Senarai Petugas',
     rolePetugas: 'Petugas',
+    albumTitle: 'Album Foto',
+    albumDay: 'Hari',
+    albumEmpty: 'Foto akan dimuat naik tidak lama lagi. Sila datang semula kemudian.',
     noData: 'Tiada data.',
   },
   en: {
@@ -174,6 +177,9 @@ const L10N = {
     speakerModalTitle: 'Speaker Background',
     petugasModalTitle: 'Worker List',
     rolePetugas: 'Worker',
+    albumTitle: 'Photo Album',
+    albumDay: 'Day',
+    albumEmpty: 'Photos will be uploaded soon. Please come back later.',
     noData: 'No data.',
   }
 }
@@ -937,6 +943,21 @@ function loadGallery() {
       </div>
     </div>`
   })
+  html += `<div class="gallery-card card-clickable" onclick="openAlbumModal()">
+    <div class="gallery-card-header">
+      <div class="gallery-icon" style="background:var(--gold)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="18" height="18" rx="2"/>
+          <circle cx="8" cy="8" r="2"/>
+          <path d="M21 15l-5-5L5 21"/>
+        </svg>
+      </div>
+      <div class="gallery-meta">
+        <div class="gallery-title">${t('albumTitle')}</div>
+        <div class="gallery-artist">${t('albumDay')} 1 – 5</div>
+      </div>
+    </div>
+  </div>`
   html += '</div>'
   container.innerHTML = html
 
@@ -995,6 +1016,45 @@ function formatTime(seconds) {
   const m = Math.floor(seconds / 60)
   const s = Math.floor(seconds % 60)
   return `${m}:${s < 10 ? '0' : ''}${s}`
+}
+
+// ===== ALBUM =====
+const ALBUM_PHOTOS = [
+  { day: 1, label: 'Isnin', date: '20 Julai 2026', photos: [] },
+  { day: 2, label: 'Selasa', date: '21 Julai 2026', photos: [] },
+  { day: 3, label: 'Rabu', date: '22 Julai 2026', photos: [] },
+  { day: 4, label: 'Khamis', date: '23 Julai 2026', photos: [] },
+  { day: 5, label: 'Jumaat', date: '24 Julai 2026', photos: [] },
+]
+
+function openAlbumModal() {
+  let body = '<div class="album-day-grid">'
+  ALBUM_PHOTOS.forEach((a, i) => {
+    body += `<button class="album-day-btn" onclick="openAlbumDay(${i})">
+      <div class="album-day-label">${t('albumDay')} ${a.day}</div>
+      <div class="album-day-date">${a.label}, ${a.date}</div>
+    </button>`
+  })
+  body += '</div>'
+  openModal(t('albumTitle'), body)
+}
+
+function openAlbumDay(index) {
+  const day = ALBUM_PHOTOS[index]
+  if (!day) return
+  const title = `${t('albumDay')} ${day.day}: ${day.label}, ${day.date}`
+  let body
+  if (day.photos && day.photos.length) {
+    let grid = '<div class="album-photo-grid">'
+    day.photos.forEach(p => {
+      grid += `<img src="album/${p}" class="album-photo" onclick="openAlbumViewer(this.src)">`
+    })
+    grid += '</div>'
+    body = grid
+  } else {
+    body = `<div class="album-empty-state">${t('albumEmpty')}</div>`
+  }
+  openModal(title, body)
 }
 
 // ===== SPLASH =====
