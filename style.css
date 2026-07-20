@@ -434,6 +434,31 @@ body {
 .nav-item.active svg { stroke-width: 2.5; }
 .nav-item:hover { color: var(--primary); }
 
+.nav-item-home {
+  width: 52px;
+  height: 52px;
+  background: linear-gradient(135deg, #2ecc71, #3498db);
+  border-radius: 50%;
+  margin-top: -24px;
+  box-shadow: 0 4px 16px rgba(46, 204, 113, 0.35);
+  color: white !important;
+  padding: 0;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.nav-item-home svg {
+  width: 26px;
+  height: 26px;
+}
+.nav-item-home span {
+  display: none;
+}
+.nav-item-home:hover {
+  color: white !important;
+  transform: scale(1.06);
+  box-shadow: 0 6px 20px rgba(46, 204, 113, 0.45);
+}
+
 /* ========== CONTACT FAB ========== */
 .contact-fab {
   position: fixed;
