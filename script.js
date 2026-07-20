@@ -235,7 +235,7 @@ function parseCSV(text) {
 }
 
 async function fetchCSV(url) {
-  const res = await fetch(url, { cache: 'no-store' })
+  const res = await fetch(url)
   return parseCSV(await res.text())
 }
 
@@ -532,6 +532,9 @@ async function loadEventInfo() {
 
   const spkCard = document.getElementById('staticSpeakerCard')
   if (spkCard) spkCard.onclick = openSpeakerModal
+
+  const staticSabat = document.getElementById('sabatStaticCard')
+  if (staticSabat) staticSabat.remove()
 
   try {
     const info = await getEventInfo()
