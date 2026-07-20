@@ -236,18 +236,18 @@ function parseCSV(text) {
 
 async function fetchCSV(url, attempt = 1) {
   try {
-    const ctrl = new AbortController()
-    const tid = setTimeout(() => ctrl.abort(), attempt === 1 ? 8000 : 12000)
-    const res = await fetch(url, { signal: ctrl.signal })
-    clearTimeout(tid)
+    const res = await Promise.race([
+      fetch(url),
+      new Promise((_, rj) => setTimeout(() => rj(new Error('Timeout')), 10000))
+    ])
     if (!res.ok) throw new Error('HTTP ' + res.status)
     return parseCSV(await res.text())
   } catch (e) {
     if (attempt < 3) {
-      await new Promise(r => setTimeout(r, attempt * 1500))
+      await new Promise(r => setTimeout(r, 1500))
       return fetchCSV(url, attempt + 1)
     }
-    throw e
+    return []
   }
 }
 
@@ -333,6 +333,7 @@ function getTodayMsia() {
 async function getAttendanceStats() {
   try {
     const csv = await fetchCSV(SHEETS.attendance)
+    if (csv.length < 2) return null
     const rows = csv.slice(1).filter(r => r[0] && r[0].trim())
     const todayStr = getTodayMsia()
     let today = 0
