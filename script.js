@@ -234,9 +234,21 @@ function parseCSV(text) {
   return rows
 }
 
-async function fetchCSV(url) {
-  const res = await fetch(url, { cache: 'no-store' })
-  return parseCSV(await res.text())
+async function fetchCSV(url, attempt = 1) {
+  try {
+    const ctrl = new AbortController()
+    const tid = setTimeout(() => ctrl.abort(), attempt === 1 ? 8000 : 12000)
+    const res = await fetch(url, { signal: ctrl.signal })
+    clearTimeout(tid)
+    if (!res.ok) throw new Error('HTTP ' + res.status)
+    return parseCSV(await res.text())
+  } catch (e) {
+    if (attempt < 3) {
+      await new Promise(r => setTimeout(r, attempt * 1500))
+      return fetchCSV(url, attempt + 1)
+    }
+    throw e
+  }
 }
 
 // ===== DATA FETCHERS =====
@@ -249,7 +261,7 @@ async function getEventInfo() {
 
 async function getProgram() {
   const rows = await fetchCSV(SHEETS.program)
-  if (rows.length < 2) return window.__STATIC_PROGRAM || { days: [], slots: [] }
+  if (rows.length < 2) return { days: [], slots: [] }
   const days = rows[0].slice(1).filter(Boolean)
   const slots = rows.slice(1).filter(r => r[0]).map(r => {
     const parts = r[0].split('\n')
@@ -260,7 +272,7 @@ async function getProgram() {
 
 async function getPetugas() {
   const rows = await fetchCSV(SHEETS.petugas)
-  if (rows.length < 2) return window.__STATIC_PETUGAS || { days: [], roles: [] }
+  if (rows.length < 2) return { days: [], roles: [] }
   const days = rows[0].slice(1).filter(Boolean)
   const roles = rows.slice(1).filter(r => r[0]).map(r => ({ role: r[0].trim(), assignments: r.slice(1) }))
   return { days, roles }
@@ -272,7 +284,6 @@ async function getAnnouncements() {
   for (let i = 1; i < rows.length; i++) {
     if (rows[i][0]) list.push({ no: rows[i][0].trim(), title: (rows[i][1] || '').trim(), content: (rows[i][2] || '').trim() })
   }
-  if (!list.length && window.__STATIC_ANNOUNCE) return window.__STATIC_ANNOUNCE
   return list
 }
 
@@ -306,7 +317,6 @@ function getTodayMsia() {
 async function getAttendanceStats() {
   try {
     const csv = await fetchCSV(SHEETS.attendance)
-    if (csv.length < 2) return null
     const rows = csv.slice(1).filter(r => r[0] && r[0].trim())
     const todayStr = getTodayMsia()
     let today = 0
@@ -811,6 +821,7 @@ async function loadPetugas() {
   try {
     const data = await getPetugas()
     if (!data.days.length) { container.innerHTML = '<div class="empty-state">' + t('noData') + '</div>'; return }
+
     let html = '<div class="petugas-grid">'
     data.days.forEach((d, i) => {
       html += `<div class="petugas-card" onclick="openPetugasModal(${i})">
@@ -848,6 +859,7 @@ async function loadAnnouncements() {
   try {
     const list = await getAnnouncements()
     if (!list.length) { container.innerHTML = '<div class="empty-state">' + t('noData') + '</div>'; return }
+
     window.__announceData = list
     updateAnnounceBadge(list.length)
     let html = '<div class="announce-grid">'
