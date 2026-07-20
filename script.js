@@ -430,9 +430,9 @@ function setupContactFab() {
       const contact = info['Contact'] || 'Pihak KKR'
       const raw = info['Whatsapp Number'] || ''
       const phone = raw.replace(/[^0-9]/g, '')
-      if (phone) {
-        waBtn.href = `https://wa.me/${phone}?text=Hai%20${encodeURIComponent(contact)}%2C%20saya%20ada%20soalan%20berkaitan%20KKR.`
-      }
+      waBtn.href = phone
+        ? `https://wa.me/${phone}?text=Hai%20${encodeURIComponent(contact)}%2C%20saya%20ada%20soalan%20berkaitan%20KKR.`
+        : 'https://wa.me/?text=Hai%20Pihak%20KKR'
     }
     if (formBtn) {
       formBtn.href = info['Google Form Link'] || 'https://forms.gle/P8ZvxiimCh8nDJnq5'
@@ -551,18 +551,6 @@ async function loadEventInfo() {
       container.insertBefore(div, container.firstChild)
     }
 
-    const statsBar = document.createElement('div')
-    statsBar.id = 'statsContainer'
-    statsBar.className = 'stats-bar'
-    container.appendChild(statsBar)
-    renderStats()
-
-    const graphCard = document.createElement('div')
-    graphCard.className = 'card'
-    graphCard.innerHTML = `<h2 style="font-size:20px;margin-bottom:16px">📊 ${t('graphTitle')}</h2><div id="attendanceGraph"><div class="loading-wrap"><div class="spinner"></div></div></div>`
-    container.appendChild(graphCard)
-    renderAttendanceGraph()
-
     if (info['Livestream']) {
       const ls = document.createElement('div')
       ls.className = 'card'
@@ -572,26 +560,39 @@ async function loadEventInfo() {
       </a>`
       container.appendChild(ls)
     }
-
-    const sabatCard = document.createElement('div')
-    sabatCard.className = 'card card-clickable'
-    sabatCard.style.cursor = 'pointer'
-    sabatCard.onclick = openSabatModal
-    sabatCard.innerHTML = `
-      <div style="display:flex;align-items:center;gap:12px">
-        <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--gold),#a8852e);display:flex;align-items:center;justify-content:center;flex-shrink:0">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
-        </div>
-        <div style="flex:1">
-          <div style="font-weight:700;font-size:15px;color:var(--primary)">${t('sabatTitle')}</div>
-          <div style="font-size:12px;color:var(--gray);margin-top:2px">25 Julai 2026 · ${t('sabatVenue')}</div>
-        </div>
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
-      </div>`
-    container.appendChild(sabatCard)
   } catch (e) {
-    // silent - static content already shows
+    // silent
   }
+
+  // Always render stats + graph + sabat (don't depend on event info sheet)
+  const statsBar = document.createElement('div')
+  statsBar.id = 'statsContainer'
+  statsBar.className = 'stats-bar'
+  container.appendChild(statsBar)
+  renderStats()
+
+  const graphCard = document.createElement('div')
+  graphCard.className = 'card'
+  graphCard.innerHTML = `<h2 style="font-size:20px;margin-bottom:16px">📊 ${t('graphTitle')}</h2><div id="attendanceGraph"><div class="loading-wrap"><div class="spinner"></div></div></div>`
+  container.appendChild(graphCard)
+  renderAttendanceGraph()
+
+  const sabatCard = document.createElement('div')
+  sabatCard.className = 'card card-clickable'
+  sabatCard.style.cursor = 'pointer'
+  sabatCard.onclick = openSabatModal
+  sabatCard.innerHTML = `
+    <div style="display:flex;align-items:center;gap:12px">
+      <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--gold),#a8852e);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+      </div>
+      <div style="flex:1">
+        <div style="font-weight:700;font-size:15px;color:var(--primary)">${t('sabatTitle')}</div>
+        <div style="font-size:12px;color:var(--gray);margin-top:2px">25 Julai 2026 · ${t('sabatVenue')}</div>
+      </div>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
+    </div>`
+  container.appendChild(sabatCard)
 }
 
 // ===== PROGRAM PAGE (Tabbed) =====
