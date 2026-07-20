@@ -234,9 +234,21 @@ function parseCSV(text) {
   return rows
 }
 
-async function fetchCSV(url) {
-  const res = await fetch(url)
-  return parseCSV(await res.text())
+async function fetchCSV(url, attempt = 1) {
+  try {
+    const ctrl = new AbortController()
+    const tid = setTimeout(() => ctrl.abort(), attempt === 1 ? 8000 : 12000)
+    const res = await fetch(url, { signal: ctrl.signal })
+    clearTimeout(tid)
+    if (!res.ok) throw new Error('HTTP ' + res.status)
+    return parseCSV(await res.text())
+  } catch (e) {
+    if (attempt < 3) {
+      await new Promise(r => setTimeout(r, attempt * 1500))
+      return fetchCSV(url, attempt + 1)
+    }
+    throw e
+  }
 }
 
 // ===== DATA FETCHERS =====
@@ -293,8 +305,12 @@ async function loadBadge() {
 /* ── Get today's date in Malaysia time (UTC+8) ── */
 function getTodayMsia() {
   const now = new Date()
-  const msia = new Date(now.getTime() + 8 * 3600000)
-  return msia.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })
+  const msiaOffset = 8 * 60
+  const localOffset = now.getTimezoneOffset()
+  const diff = msiaOffset + localOffset
+  const msia = new Date(now.getTime() + diff * 60000)
+  const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+  return msia.getDate() + ' ' + months[msia.getMonth()] + ' ' + msia.getFullYear()
 }
 
 /* ── Attendance stats ── */
@@ -334,7 +350,10 @@ async function renderStats() {
   }
 
   const stats = await getAttendanceStats()
-  if (!stats) return
+  if (!stats) {
+    container.innerHTML = '<div class="stat-card" style="width:100%;text-align:center"><span class="stat-label">' + t('error') + '</span></div>'
+    return
+  }
 
   if (msiaDate > end) {
     container.innerHTML = `<div class="stat-card" style="width:100%"><span class="stat-number">${stats.total}</span><span class="stat-label">${t('statsTotal')}</span></div>`
@@ -362,10 +381,15 @@ async function renderAttendanceGraph() {
     }
     const max = Math.max(...Object.values(dayMap), 1)
     const dayNames = [t('daySun') || 'Ahad', t('dayMon'), t('dayTue'), t('dayWed'), t('dayThu'), t('dayFri'), t('daySat')]
+    const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December']
     let html = '<div class="graph-body">'
     dates.forEach((d, i) => {
-      const day = new Date(d)
-      const label = !isNaN(day.getTime()) ? dayNames[day.getDay()] : d.split(' ')[0] || d
+      const dp = d.split(' ')
+      const dn = parseInt(dp[0], 10)
+      const dm = MONTHS.indexOf(dp[1])
+      const dy = parseInt(dp[2], 10) || 2026
+      const dayObj = dm > -1 ? new Date(dy, dm, dn) : new Date(d)
+      const label = !isNaN(dayObj.getTime()) ? dayNames[dayObj.getDay()] : d.split(' ')[0] || d
       const pct = (dayMap[d] / max) * 100
       html += `
         <div class="graph-row">
@@ -641,7 +665,7 @@ async function loadProgram() {
     } catch (e) {}
     selectProgramDay(defaultDay)
   } catch (e) {
-    container.innerHTML = '<div class="card"><p style="color:#ef4444;font-size:13px">' + t('error') + '</p></div>'
+    container.innerHTML = '<div class="card" style="text-align:center;padding:24px"><p style="color:#ef4444;font-size:14px;font-weight:600;margin:0 0 8px">' + t('error') + '</p><button onclick="location.reload()" style="background:var(--gold);color:white;border:none;border-radius:20px;padding:8px 20px;font-size:13px;font-weight:700;cursor:pointer">Cuba Semula</button></div>'
   }
 }
 
@@ -812,7 +836,7 @@ async function loadPetugas() {
     window.__petugasData = data
     container.innerHTML = html + renderAJK()
   } catch (e) {
-    container.innerHTML = '<div class="card"><p style="color:#ef4444;font-size:13px">' + t('error') + '</p></div>'
+    container.innerHTML = '<div class="card" style="text-align:center;padding:24px"><p style="color:#ef4444;font-size:14px;font-weight:600;margin:0 0 8px">' + t('error') + '</p><button onclick="location.reload()" style="background:var(--gold);color:white;border:none;border-radius:20px;padding:8px 20px;font-size:13px;font-weight:700;cursor:pointer">Cuba Semula</button></div>'
   }
 }
 
@@ -852,7 +876,7 @@ async function loadAnnouncements() {
     html += '</div>'
     container.innerHTML = html
   } catch (e) {
-    container.innerHTML = '<div class="card"><p style="color:#ef4444;font-size:13px">' + t('error') + '</p></div>'
+    container.innerHTML = '<div class="card" style="text-align:center;padding:24px"><p style="color:#ef4444;font-size:14px;font-weight:600;margin:0 0 8px">' + t('error') + '</p><button onclick="location.reload()" style="background:var(--gold);color:white;border:none;border-radius:20px;padding:8px 20px;font-size:13px;font-weight:700;cursor:pointer">Cuba Semula</button></div>'
   }
 }
 
