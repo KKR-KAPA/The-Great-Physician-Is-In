@@ -17,6 +17,7 @@
     <div class="subtitle">KKR Daerah Kapa</div>
     <h1 data-i18n="programTitle">Aturcara</h1>
     <div class="desc" data-i18n="programDesc">20 - 25 Julai 2026</div>
+    <div onclick="toggleLang()" class="lang-pill">BM</div>
   </div>
 
   <div class="page-content">
@@ -83,6 +84,13 @@
     </div>
   </div>
 
+  <style>.lang-pill{position:absolute;right:16px;top:50%;transform:translateY(-50%);background:#c8a24e;color:white;border:none;border-radius:20px;padding:4px 14px;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:.5px;line-height:24px;z-index:10}.page-header{position:relative}</style>
+  <script>
+  (function(){try{var l=localStorage.getItem('kkr_lang')||'ms';var p=document.querySelector('.lang-pill');if(p)p.textContent=l==='ms'?'EN':'BM'}catch(e){}})()
+  function toggleLang(){var c='ms';try{c=localStorage.getItem('kkr_lang')||'ms'}catch(e){}var n=c==='ms'?'en':'ms';try{localStorage.setItem('kkr_lang',n)}catch(e){}location.reload()}
+  function toggleContactMenu(){var f=document.getElementById('contactFab');if(f)f.classList.toggle('open')}
+  function closeModal(){var o=document.getElementById('modalOverlay');if(o)o.classList.remove('open');document.body.style.overflow=''}
+  </script>
   <script src="script.js"></script>
 </body>
 </html>

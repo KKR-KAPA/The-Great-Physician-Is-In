@@ -1073,7 +1073,7 @@ function initSplash() {
 
 // ===== LANGUAGE UI =====
 function applyTranslations() {
-  const langToggle = document.getElementById('langToggle')
+  const langToggle = document.getElementById('langToggle') || document.querySelector('.lang-pill')
   if (langToggle) langToggle.textContent = lang === 'ms' ? 'EN' : 'BM'
 
   document.querySelectorAll('[data-i18n]').forEach(el => {
@@ -1131,6 +1131,7 @@ function applyTranslations() {
 }
 
 function addLangToggleUI() {
+  if (document.querySelector('.lang-pill')) return
   let header = document.querySelector('.page-header .header-inner') || document.querySelector('.home-hero .header-inner')
   if (!header) {
     const pageHeader = document.querySelector('.page-header')
