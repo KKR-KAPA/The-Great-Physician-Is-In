@@ -571,6 +571,24 @@ async function loadEventInfo() {
       </div>`
     container.appendChild(spk)
 
+    const ytCard = document.createElement('div')
+    ytCard.className = 'card'
+    ytCard.innerHTML = `
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="width:44px;height:44px;border-radius:12px;background:#c8a24e;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+        </div>
+        <div style="flex:1">
+          <div style="font-weight:700;font-size:15px;color:var(--primary)">${t('youtubeCard')}</div>
+          <div style="font-size:12px;color:var(--gray);margin-top:2px">${t('youtubeSub')}</div>
+        </div>
+        <a href="https://youtube.com/@gerejasdakoporingan?si=VdP7JfRKLpuSXBBL" target="_blank" rel="noopener noreferrer" class="livestream-link" style="flex-shrink:0">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          ${t('youtubeBtn')}
+        </a>
+      </div>`
+    container.appendChild(ytCard)
+
     const statsBar = document.createElement('div')
     statsBar.id = 'statsContainer'
     statsBar.className = 'stats-bar'
@@ -609,22 +627,6 @@ async function loadEventInfo() {
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
       </div>`
     container.appendChild(sabatCard)
-
-    const ytCard = document.createElement('div')
-    ytCard.className = 'card'
-    ytCard.innerHTML = `
-      <h2 style="font-size:20px;margin-bottom:20px">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="#c8a24e" style="vertical-align:middle;margin-right:8px">
-          <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-        </svg>
-        ${t('youtubeCard')}
-      </h2>
-      <p style="font-size:13px;color:var(--gray);margin-bottom:16px">${t('youtubeSub')}</p>
-      <a href="https://youtube.com/@gerejasdakoporingan?si=VdP7JfRKLpuSXBBL" target="_blank" rel="noopener noreferrer" class="livestream-link">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-        ${t('youtubeBtn')}
-      </a>`
-    container.appendChild(ytCard)
   } catch (e) {
     container.innerHTML = '<div class="card"><p style="color:#ef4444;font-size:13px">' + t('error') + '</p></div>'
   }
