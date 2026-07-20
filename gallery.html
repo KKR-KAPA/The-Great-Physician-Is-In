@@ -56,13 +56,13 @@
       <div class="card" style="margin-top:20px">
         <h2 style="font-size:20px;margin-bottom:16px" data-i18n="albumTitle">📸 Album</h2>
         <div class="album-tabs" id="albumTabs">
-          <button class="album-tab active" onclick="location.href='https://github.com/kkr-kapa/The-Great-Physician-Is-In/tree/main/Album/Day%201'">Hari 1</button>
-          <button class="album-tab" onclick="location.href='https://github.com/kkr-kapa/The-Great-Physician-Is-In/tree/main/Album/Day%202'">Hari 2</button>
-          <button class="album-tab" onclick="location.href='https://github.com/kkr-kapa/The-Great-Physician-Is-In/tree/main/Album/Day%203'">Hari 3</button>
-          <button class="album-tab" onclick="location.href='https://github.com/kkr-kapa/The-Great-Physician-Is-In/tree/main/Album/Day%204'">Hari 4</button>
-          <button class="album-tab" onclick="location.href='https://github.com/kkr-kapa/The-Great-Physician-Is-In/tree/main/Album/Day%205'">Hari 5</button>
+          <button class="album-tab active" onclick="if(typeof loadAlbumDay==='function')loadAlbumDay(1)">Hari 1</button>
+          <button class="album-tab" onclick="if(typeof loadAlbumDay==='function')loadAlbumDay(2)">Hari 2</button>
+          <button class="album-tab" onclick="if(typeof loadAlbumDay==='function')loadAlbumDay(3)">Hari 3</button>
+          <button class="album-tab" onclick="if(typeof loadAlbumDay==='function')loadAlbumDay(4)">Hari 4</button>
+          <button class="album-tab" onclick="if(typeof loadAlbumDay==='function')loadAlbumDay(5)">Hari 5</button>
         </div>
-        <div id="albumGrid" class="album-grid"><p style="color:var(--gray);font-size:13px;text-align:center;padding:20px 0">Tiada foto buat masa ini</p></div>
+        <div id="albumGrid" class="album-grid"><p style="color:var(--gray);font-size:13px;text-align:center;padding:20px 0" id="albumEmptyMsg">Tiada foto buat masa ini. Sila datang semula kemudian.</p></div>
       </div>
     </div>
   </div>

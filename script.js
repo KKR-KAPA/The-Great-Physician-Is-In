@@ -260,31 +260,47 @@ async function getEventInfo() {
 }
 
 async function getProgram() {
-  const rows = await fetchCSV(SHEETS.program)
-  if (rows.length < 2) return { days: [], slots: [] }
-  const days = rows[0].slice(1).filter(Boolean)
-  const slots = rows.slice(1).filter(r => r[0]).map(r => {
-    const parts = r[0].split('\n')
-    return { role: parts[0].trim(), time: parts[1] ? parts[1].trim() : '', schedule: r.slice(1) }
-  })
-  return { days, slots }
+  try {
+    const rows = await fetchCSV(SHEETS.program)
+    if (rows.length < 2) return window.__STATIC_PROGRAM || { days: [], slots: [] }
+    const days = rows[0].slice(1).filter(Boolean)
+    const slots = rows.slice(1).filter(r => r[0]).map(r => {
+      const parts = r[0].split('\n')
+      return { role: parts[0].trim(), time: parts[1] ? parts[1].trim() : '', schedule: r.slice(1) }
+    })
+    return { days, slots }
+  } catch (e) {
+    if (window.__STATIC_PROGRAM) return window.__STATIC_PROGRAM
+    throw e
+  }
 }
 
 async function getPetugas() {
-  const rows = await fetchCSV(SHEETS.petugas)
-  if (rows.length < 2) return { days: [], roles: [] }
-  const days = rows[0].slice(1).filter(Boolean)
-  const roles = rows.slice(1).filter(r => r[0]).map(r => ({ role: r[0].trim(), assignments: r.slice(1) }))
-  return { days, roles }
+  try {
+    const rows = await fetchCSV(SHEETS.petugas)
+    if (rows.length < 2) return window.__STATIC_PETUGAS || { days: [], roles: [] }
+    const days = rows[0].slice(1).filter(Boolean)
+    const roles = rows.slice(1).filter(r => r[0]).map(r => ({ role: r[0].trim(), assignments: r.slice(1) }))
+    return { days, roles }
+  } catch (e) {
+    if (window.__STATIC_PETUGAS) return window.__STATIC_PETUGAS
+    throw e
+  }
 }
 
 async function getAnnouncements() {
-  const rows = await fetchCSV(SHEETS.announcements)
-  const list = []
-  for (let i = 1; i < rows.length; i++) {
-    if (rows[i][0]) list.push({ no: rows[i][0].trim(), title: (rows[i][1] || '').trim(), content: (rows[i][2] || '').trim() })
+  try {
+    const rows = await fetchCSV(SHEETS.announcements)
+    const list = []
+    for (let i = 1; i < rows.length; i++) {
+      if (rows[i][0]) list.push({ no: rows[i][0].trim(), title: (rows[i][1] || '').trim(), content: (rows[i][2] || '').trim() })
+    }
+    if (!list.length && window.__STATIC_ANNOUNCE) return window.__STATIC_ANNOUNCE
+    return list
+  } catch (e) {
+    if (window.__STATIC_ANNOUNCE) return window.__STATIC_ANNOUNCE
+    throw e
   }
-  return list
 }
 
 function updateAnnounceBadge(count) {
