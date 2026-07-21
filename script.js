@@ -62,6 +62,8 @@ const L10N = {
     error: 'Gagal memuat maklumat.',
     livestream: 'Siaran Langsung',
     livestreamBtn: 'Tonton Sekarang',
+    recordedTitle: 'Rakaman',
+    recordedBtn: 'Tonton Rakaman',
     sabatTitle: 'Kebaktian Sabat Gabungan',
     sabatVenue: 'Auditorium Adventist, Tamparuli',
     sabatSesiPagi: 'Sesi Pagi',
@@ -146,6 +148,8 @@ const L10N = {
     error: 'Failed to load.',
     livestream: 'Live Stream',
     livestreamBtn: 'Watch Now',
+    recordedTitle: 'Recording',
+    recordedBtn: 'Watch Recording',
     sabatTitle: 'Joint Sabbath Service',
     sabatVenue: 'Auditorium Adventist, Tamparuli',
     sabatSesiPagi: 'Morning Session',
@@ -588,6 +592,28 @@ async function loadEventInfo() {
         ${t('livestreamBtn')}
       </a>`
       container.appendChild(ls)
+    }
+
+    const recordedVideos = []
+    for (let d = 1; d <= 5; d++) {
+      const url = info[`Recorded Video Day ${d}`]
+      if (url) recordedVideos.push({ day: d, url })
+    }
+    if (recordedVideos.length) {
+      const rv = document.createElement('div')
+      rv.className = 'card card-clickable'
+      rv.onclick = () => openRecordedModal(recordedVideos)
+      rv.innerHTML = `<div style="display:flex;align-items:center;gap:12px">
+        <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#ff6b6b,#ee5a24);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        </div>
+        <div style="flex:1">
+          <div style="font-weight:700;font-size:15px;color:var(--primary)">${t('recordedTitle')}</div>
+          <div style="font-size:12px;color:var(--gray);margin-top:2px">${recordedVideos.length} hari tersedia</div>
+        </div>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
+      </div>`
+      container.appendChild(rv)
     }
 
     const sabatCard = document.createElement('div')
@@ -1085,6 +1111,19 @@ function openAlbumViewer(src) {
   </button>`
   overlay.classList.add('open')
   document.body.style.overflow = 'hidden'
+}
+
+function openRecordedModal(videos) {
+  let body = '<div class="album-day-grid">'
+  videos.forEach(v => {
+    const day = ALBUM_PHOTOS[v.day - 1]
+    body += `<a href="${v.url}" target="_blank" rel="noopener" class="album-day-btn">
+      <div class="album-day-label">${t('albumDay')} ${v.day}</div>
+      <div class="album-day-date">${day ? day.label + ', ' + day.date : ''}</div>
+    </a>`
+  })
+  body += '</div>'
+  openModal(t('recordedTitle'), body)
 }
 
 // ===== SPLASH =====
