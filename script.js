@@ -1027,7 +1027,7 @@ function formatTime(seconds) {
 
 // ===== ALBUM =====
 const ALBUM_PHOTOS = [
-  { day: 1, label: 'Isnin', date: '20 Julai 2026', photos: [] },
+  { day: 1, label: 'Isnin', date: '20 Julai 2026', photos: ['day 1.JPG','day 1.1.JPG','day 1.3.JPG','day 1.4.JPG','day 1.5.JPG','day 1.6.JPG','day 1.7.JPG'] },
   { day: 2, label: 'Selasa', date: '21 Julai 2026', photos: [] },
   { day: 3, label: 'Rabu', date: '22 Julai 2026', photos: [] },
   { day: 4, label: 'Khamis', date: '23 Julai 2026', photos: [] },
@@ -1054,7 +1054,7 @@ function openAlbumDay(index) {
   if (day.photos && day.photos.length) {
     let grid = '<div class="album-photo-grid">'
     day.photos.forEach(p => {
-      grid += `<img src="album/${p}" class="album-photo" onclick="openAlbumViewer(this.src)">`
+      grid += `<img src="Album/${encodeURIComponent(p)}" class="album-photo" onclick="openAlbumViewer(this.src)">`
     })
     grid += '</div>'
     body = grid
@@ -1062,6 +1062,21 @@ function openAlbumDay(index) {
     body = `<div class="album-empty-state">${t('albumEmpty')}</div>`
   }
   openModal(title, body)
+}
+
+function openAlbumViewer(src) {
+  const overlay = document.getElementById('modalOverlay')
+  const header = document.querySelector('.modal-header')
+  const body = document.getElementById('modalBody')
+  if (header) header.style.display = 'none'
+  body.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;min-height:60vh">
+    <img src="${src}" style="max-width:100%;max-height:80vh;border-radius:16px;object-fit:contain" onclick="event.stopPropagation()">
+  </div>
+  <button class="speaker-modal-close" onclick="closeModal()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+  </button>`
+  overlay.classList.add('open')
+  document.body.style.overflow = 'hidden'
 }
 
 // ===== SPLASH =====
