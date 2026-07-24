@@ -1056,7 +1056,7 @@ const ALBUM_PHOTOS = [
   { day: 1, label: 'Isnin', date: '20 Julai 2026', photos: ['day 1.JPG','day 1.1.JPG','day 1.3.JPG','day 1.4.JPG','day 1.5.JPG','day 1.6.JPG','day 1.7.JPG'] },
   { day: 2, label: 'Selasa', date: '21 Julai 2026', photos: ['day 2.1.JPG','day 2.2.JPG','day 2.3.JPG','day 2.4.JPG','day 2.5.JPG','day 2.6.JPG','day 2.7.JPG','day 2.8.JPG','day 2.9.JPG','day 2.10.JPG','day 2.11.JPG','day 2.12.JPG','day 2.13.JPG','day 2.14.JPG','day 2.15.JPG'] },
   { day: 3, label: 'Rabu', date: '22 Julai 2026', photos: ['day 3.1.JPG','day 3.2.JPG','day 3.3.JPG','day 3.4.JPG','day 3.5.JPG','day 3.6.JPG','day 3.7.JPG','day 3.8.JPG','day 3.9.JPG','day 3.10.JPG'] },
-  { day: 4, label: 'Khamis', date: '23 Julai 2026', photos: [] },
+  { day: 4, label: 'Khamis', date: '23 Julai 2026', photos: ['day 4.1.JPG','day 4.2.JPG','day 4.3.JPG','day 4.4.JPG','day 4.5.JPG','day 4.6.JPG','day 4.7.JPG','day 4.8.JPG','day 4.9.JPG','day 4.10.JPG','day 4.11.JPG','day 4.12.JPG','day 4.13.JPG','day 4.14.JPG','day 4.15.JPG','day 4.16.JPG'] },
   { day: 5, label: 'Jumaat', date: '24 Julai 2026', photos: [] },
 ]
 
